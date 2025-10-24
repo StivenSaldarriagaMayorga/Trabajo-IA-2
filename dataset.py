@@ -54,6 +54,7 @@ def escalar_datos(X_train,X_test):
 
 
 
+<<<<<<< Updated upstream
 
 #Balanceo de clases:
 #Balanceada:
@@ -68,4 +69,50 @@ def balancear_clases(X, y):
     return df_balanceado.drop(columns=['churn_plan_class']), df_balanceado['churn_plan_class']
 
 
+=======
+"""print(X_train_scaled)
+print(X_test_scaled)"""
+
+
+#OTLAIERS:
+
+#SIN OTLIERS
+
+
+def sin_outliers_iqr(df, y='churn_plan_class', k=1.5):
+    Q1 = df.drop(columns=y).quantile(0.25)
+    Q3 = df.drop(columns=y).quantile(.75)
+    IQR = Q3 - Q1
+    lower = Q1 - k*IQR
+    upper =  Q3 + k*IQR
+    mask = ~((df.drop(columns=y) < lower) | (df.drop(columns=y) > upper)).any(axis=1)
+    data_clean = df.loc[mask].reset_index(drop=True)
+    X_clean = data_clean.drop(columns=[y]).values
+    y_clean = data_clean[y].values
+    return X_clean, y_clean, data_clean 
+
+def con_outliers_5(df, y='churn_plan_class', target=0.05, tol=0.002):
+
+    num = df.select_dtypes(include='number').drop(columns=[y], errors='ignore')
+    k_lo, k_hi = 0.1, 3.0
+    mask = None
+
+    for _ in range(20):
+        k = 0.5*(k_lo + k_hi)
+        Q1, Q3 = num.quantile(.25), num.quantile(.75)
+        IQR = Q3 - Q1
+        lo, up = Q1 - k*IQR, Q3 + k*IQR
+        mask = (num.lt(lo) | num.gt(up)).any(axis=1)
+        rate = mask.mean()
+        if abs(rate - target) <= tol:
+            break
+        k_lo, k_hi = (k, k_hi) if rate > target else (k_lo, k)
+
+    data_5 = df.copy()
+    data_5['is_outlier_5pct'] = mask.astype(int)
+
+    X_5 = data_5.drop(columns=[y]).values
+    y_5 = data_5[y].values
+    return X_5, y_5, data_5
+>>>>>>> Stashed changes
 
