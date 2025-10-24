@@ -61,9 +61,11 @@ def balancear_clases(X, y):
     df = pd.concat([X, y], axis=1)
     min_count = df['churn_plan_class'].value_counts().min()
     clases_balanceadas = []
-    for clase, grupo in df.groupby('churn_plan_class'):
+    for _, grupo in df.groupby('churn_plan_class'):
         grupo_res = resample(grupo,replace=False,n_samples=min_count,random_state=seed)
         clases_balanceadas.append(grupo_res)
     df_balanceado = pd.concat(clases_balanceadas)
-    return df_balanceado.drop('churn_plan_class', axis=1), df_balanceado['churn_plan_class']
+    return df_balanceado.drop(columns=['churn_plan_class']), df_balanceado['churn_plan_class']
+
+
 
