@@ -54,7 +54,6 @@ def escalar_datos(X_train,X_test):
 
 
 
-<<<<<<< Updated upstream
 
 #Balanceo de clases:
 #Balanceada:
@@ -69,7 +68,6 @@ def balancear_clases(X, y):
     return df_balanceado.drop(columns=['churn_plan_class']), df_balanceado['churn_plan_class']
 
 
-=======
 """print(X_train_scaled)
 print(X_test_scaled)"""
 
@@ -114,5 +112,4 @@ def con_outliers_5(df, y='churn_plan_class', target=0.05, tol=0.002):
     X_5 = data_5.drop(columns=[y]).values
     y_5 = data_5[y].values
     return X_5, y_5, data_5
->>>>>>> Stashed changes
 
