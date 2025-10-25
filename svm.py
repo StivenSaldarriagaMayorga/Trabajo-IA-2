@@ -14,11 +14,11 @@ def entrenar_y_evaluar(datos, classifier, kernel, *, C, **kwargs):
 
 for idx, datos in enumerate(dataframes):
     print(f"====== Dataframe {idx} ======")
-    rbf_ovr = entrenar_y_evaluar(dataframes[0], OneVsRestClassifier, "rbf", C=1.0, gamma="auto")
+    rbf_ovr = entrenar_y_evaluar(datos, OneVsRestClassifier, "rbf", C=1.0, gamma="auto")
     print("RBF OvR:", rbf_ovr)
-    rbf_ovo = entrenar_y_evaluar(dataframes[0], OneVsOneClassifier, "rbf", C=1.0, gamma="auto")
+    rbf_ovo = entrenar_y_evaluar(datos, OneVsOneClassifier, "rbf", C=1.0, gamma="auto")
     print("RBF OvO:", rbf_ovo)
-    lineal_ovr = entrenar_y_evaluar(dataframes[0], OneVsRestClassifier, "linear", C=1.0)
+    lineal_ovr = entrenar_y_evaluar(datos, OneVsRestClassifier, "linear", C=1.0)
     print("Lineal OvR:", lineal_ovr)
-    lineal_ovo = entrenar_y_evaluar(dataframes[0], OneVsOneClassifier, "linear", C=1.0)
+    lineal_ovo = entrenar_y_evaluar(datos, OneVsOneClassifier, "linear", C=1.0)
     print("Lineal OvO:", lineal_ovo)
