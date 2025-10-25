@@ -2,6 +2,7 @@
 
 #Importar las librerías necesarias
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
@@ -19,6 +20,8 @@ df=df.drop(columns=['subscription_type','is_churned'])
 
 #Estrablecer semilla
 seed=852
+np.random.seed(seed)
+
 
 #preprocesamiento
 
