@@ -1,6 +1,6 @@
 from dataset import dataframes
 from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
 
 
@@ -9,7 +9,11 @@ def entrenar_y_evaluar(datos, classifier, kernel, *, C, **kwargs):
     modelo = classifier(SVC(kernel=kernel, C=C, **kwargs))
     modelo.fit(X_train, y_train)
     y_pred = modelo.predict(X_test)
-    return accuracy_score(y_test, y_pred)
+
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    f1 = f1_score(y_test, y_pred)
+    return { "accuracy": accuracy, "precision": precision, "f1": f1 }
 
 
 for idx, datos in enumerate(dataframes):
