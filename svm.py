@@ -11,8 +11,8 @@ def entrenar_y_evaluar(datos, classifier, kernel, *, C, **kwargs):
     y_pred = modelo.predict(X_test)
 
     accuracy = accuracy_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred)
-    f1 = f1_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average="weighted")
+    f1 = f1_score(y_test, y_pred, average="weighted")
     return { "accuracy": accuracy, "precision": precision, "f1": f1 }
 
 
