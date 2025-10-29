@@ -125,7 +125,7 @@ for i in range(8):
     X_train, X_test, y_train, y_test = dividir_datos(X, y, seed)
 
     if i in {4,5,6,7}:
-        X_train_scaled, X_test_scaled = escalar_datos(X_train, X_test)
+        X_train, X_test = escalar_datos(X_train, X_test)
     
     if i in {0, 1, 4, 5}:
         X_train, y_train = sin_outliers_iqr(pd.concat([X_train, y_train], axis=1))
