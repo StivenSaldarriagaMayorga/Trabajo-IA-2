@@ -72,30 +72,21 @@ def sin_outliers_iqr(df: pd.DataFrame, k=1.5):
     upper =  Q3 + k*IQR
     mask = ~((numeric_df < lower) | (numeric_df > upper)).any(axis=1)
     data_clean = df.loc[mask].reset_index(drop=True)
-    X_clean = data_clean.drop(columns=[DATASET_Y_COLUMN])
-    y_clean = data_clean[DATASET_Y_COLUMN]
-    return X_clean, y_clean
+    return data_clean
 
 
 #Balanceo de clases:
 #Balanceada:
-def balancear_clases(X, y):
-    if not isinstance(X, pd.DataFrame):
-        X = pd.DataFrame(X)
-    if not isinstance(y, pd.Series):
-        y = pd.Series(y, name=DATASET_Y_COLUMN)
-    df = pd.concat([X,y],axis=1)
+def balancear_clases(df: pd.DataFrame):
     min_count = df[DATASET_Y_COLUMN].value_counts().min()
     clases_balanceadas = []
     for _, grupo in df.groupby(DATASET_Y_COLUMN):
-        grupo_res = resample(grupo,replace=False,n_samples=min_count,random_state=SEED)
+        grupo_res = grupo.sample(min_count, random_state=SEED)
         clases_balanceadas.append(grupo_res)
-    df_balanceado = pd.concat(clases_balanceadas)
-    return df_balanceado.drop(columns=[DATASET_Y_COLUMN]), df_balanceado[DATASET_Y_COLUMN]
+    return pd.concat(clases_balanceadas)
 
 
 def con_outliers_5(df, target=0.05, tol=0.002):
-
     num = df.select_dtypes(include='number').drop(columns=[DATASET_Y_COLUMN], errors='ignore')
     k_lo, k_hi = 0.1, 3.0
     mask = None
@@ -114,9 +105,7 @@ def con_outliers_5(df, target=0.05, tol=0.002):
     data_5 = df.copy()
     # data_5['is_outlier_5pct'] = mask.astype(int)
 
-    X_5 = data_5.drop(columns=[DATASET_Y_COLUMN])
-    y_5 = data_5[DATASET_Y_COLUMN]
-    return X_5, y_5
+    return data_5
 
 
 df = obtener_dataset()
@@ -126,17 +115,17 @@ df = categoricas_a_numericas(df)
 dataframes=[]
 for i in range(8):
     df_aux = df.copy()
-    X, y = obtener_caracteristicas_y_objetivo(df_aux)
-    X_train, X_test, y_train, y_test = dividir_datos(X, y)
-
-    if i in {0, 1, 4, 5}:
-        X_train, y_train = sin_outliers_iqr(df_aux)
-    else:
-        X_train, y_train = con_outliers_5(df_aux)
 
     if i in {1, 3, 5, 7}:
-        X_train, y_train = balancear_clases(X_train, y_train)
+        df_aux = balancear_clases(df_aux)
 
+    if i in {0, 1, 4, 5}:
+        df_aux = sin_outliers_iqr(df_aux)
+    else:
+        df_aux = con_outliers_5(df_aux)
+
+    X, y = obtener_caracteristicas_y_objetivo(df_aux)
+    X_train, X_test, y_train, y_test = dividir_datos(X, y)
 
     if i in {4,5,6,7}:
         X_train, X_test = escalar_datos(X_train, X_test)
