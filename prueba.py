@@ -2,12 +2,10 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import kagglehub
-from sklearn.metrics import accuracy_score, f1_score, precision_score
 from sklearn.model_selection import train_test_split
-from sklearn.multiclass import OneVsOneClassifier, OneVsRestClassifier
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.svm import SVC
-from sklearn.utils import resample
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer, make_column_selector
+from imblearn.under_sampling import RandomUnderSampler
 
 DATASET_KAGGLE_HANDLE = "keyushnisar/dating-app-behavior-dataset"
 DATASET_FILE = "dating_app_behavior_dataset.csv"
@@ -30,49 +28,67 @@ def obtener_dataset() -> pd.DataFrame:
 
     df = df.drop(columns=DATASET_IGNORE_COLUMNS)
 
-    print(df[DATASET_Y_COLUMN].value_counts())
-
     return df
 
 
-def categoricas_a_numericas(df: pd.DataFrame):
-    y_orig = df[DATASET_Y_COLUMN]
-    df = pd.get_dummies(df, columns=df.drop(columns=DATASET_Y_COLUMN).select_dtypes(include="object").columns)
-    le = LabelEncoder()
-    df[DATASET_Y_COLUMN] = le.fit_transform(y_orig)
-    return df
-
-
-#Dividir el conjunto de datos
-def obtener_caracteristicas_y_objetivo(df: pd.DataFrame):
+def make_xy(df: pd.DataFrame):
     X = df.drop(columns=DATASET_Y_COLUMN)
-    y = df[DATASET_Y_COLUMN]
+    y = df[DATASET_Y_COLUMN].copy()
     return X, y
 
 
-def escalar_datos(X_train,X_test):
-    scaler=StandardScaler()
-    X_train_scaled=scaler.fit_transform(X_train)
-    X_test_scaled=scaler.transform(X_test)
-    return X_train_scaled, X_test_scaled
+def make_train_test_split(df: pd.DataFrame):
+    """
+    Separar los datos en conjunto de entrenamiento y prueba
+    """
+
+    X, y = make_xy(df)
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+    )
+
+    return X_train, X_test, y_train, y_test
 
 
-#Separar los datos en conjunto de entrenamiento y prueba
-def dividir_datos(X,y):
-    X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.25,random_state=SEED)
-    return X_train,X_test,y_train,y_test
+def make_column_transformer(*, use_scaler=False):
+    transformers: list = [("encoder", OneHotEncoder(handle_unknown="ignore"), make_column_selector(dtype_include=object))]
+
+    if use_scaler:
+        transformers.append(("scaler", StandardScaler(), make_column_selector(dtype_include=["int64", "float64"])))
+
+    return ColumnTransformer(transformers=transformers)
 
 
-def sin_outliers_iqr(df: pd.DataFrame, k=1.5):
-    numeric_df = df.drop(columns=DATASET_Y_COLUMN).select_dtypes("number")
-    Q1 = numeric_df.quantile(0.25)
-    Q3 = numeric_df.quantile(.75)
+def preprocess(X_train, X_test, *, use_scaler):
+    transformer = make_column_transformer(use_scaler=use_scaler)
+    X_train = transformer.fit_transform(X_train)
+    X_test = transformer.transform(X_test)
+    return X_train, X_test
+
+
+def make_clean_from_outliers_mask(X_train, *, cols, k=1.5):
+    Q1 = X_train[cols].quantile(0.25)
+    Q3 = X_train[cols].quantile(0.75)
     IQR = Q3 - Q1
     lower = Q1 - k*IQR
     upper =  Q3 + k*IQR
-    mask = ~((numeric_df < lower) | (numeric_df > upper)).any(axis=1)
-    data_clean = df.loc[mask].reset_index(drop=True)
-    return data_clean
+
+    mask = ~((X_train[cols] < lower) |
+             (X_train[cols] > upper)).any(axis=1)
+
+    return mask
+
+
+def sin_outliers_iqr(X_train, y_train, *, cols, k=1.5):
+    mask = make_clean_from_outliers_mask(X_train, cols=cols, k=k)
+
+    X_train_clean = X_train[mask]
+    y_train_clean = y_train.loc[X_train_clean.index]
+
+    return X_train_clean, y_train_clean
 
 
 #Balanceo de clases:
@@ -86,48 +102,39 @@ def balancear_clases(df: pd.DataFrame):
     return pd.concat(clases_balanceadas)
 
 
-def con_outliers_5(df, target=0.05, tol=0.002):
-    num = df.select_dtypes(include='number').drop(columns=[DATASET_Y_COLUMN], errors='ignore')
-    k_lo, k_hi = 0.1, 3.0
-    mask = None
+def con_outliers_5(X_train, y_train, *, cols, k=1.5, target=0.05):
+    mask_clean = make_clean_from_outliers_mask(X_train, cols=cols, k=k)
 
-    for _ in range(20):
-        k = 0.5*(k_lo + k_hi)
-        Q1, Q3 = num.quantile(.25), num.quantile(.75)
-        IQR = Q3 - Q1
-        lo, up = Q1 - k*IQR, Q3 + k*IQR
-        mask = (num.lt(lo) | num.gt(up)).any(axis=1)
-        rate = mask.mean()
-        if abs(rate - target) <= tol:
-            break
-        k_lo, k_hi = (k, k_hi) if rate > target else (k_lo, k)
+    n_clean = int(len(X_train)*(1-target))
+    n_outlier = int(len(X_train)*target)
 
-    data_5 = df.copy()
-    # data_5['is_outlier_5pct'] = mask.astype(int)
+    X_train_clean = X_train[mask_clean].sample(n_clean, random_state=SEED)
+    X_train_outlier = X_train[~mask_clean].sample(n_outlier, random_state=SEED, replace=True)
 
-    return data_5
+    X_train_5 = pd.concat([X_train_clean, X_train_outlier])
+    y_train_5 = y_train.loc[X_train_5.index]
+
+    return X_train_5, y_train_5
 
 
 df = obtener_dataset()
-df = categoricas_a_numericas(df)
-
 
 dataframes=[]
 for i in range(8):
-    df_aux = df.copy()
+    X_train, X_test, y_train, y_test = make_train_test_split(df)
 
     if i in {1, 3, 5, 7}:
-        df_aux = balancear_clases(df_aux)
+        rus = RandomUnderSampler(random_state=SEED)
+        X_train, y_train = rus.fit_resample(X_train, y_train)
 
+    numeric_cols = df.select_dtypes(include=["int64", "float64"]).columns
     if i in {0, 1, 4, 5}:
-        df_aux = sin_outliers_iqr(df_aux)
+        X_train, y_train = sin_outliers_iqr(X_train, y_train, cols=numeric_cols)
     else:
-        df_aux = con_outliers_5(df_aux)
+        X_train, y_train = con_outliers_5(X_train, y_train, cols=numeric_cols)
 
-    X, y = obtener_caracteristicas_y_objetivo(df_aux)
-    X_train, X_test, y_train, y_test = dividir_datos(X, y)
-
-    if i in {4,5,6,7}:
-        X_train, X_test = escalar_datos(X_train, X_test)
+    # categóricas a numéricas y escalado
+    use_scaler = i in {4,5,6,7}
+    X_train, X_test = preprocess(X_train, X_test, use_scaler=use_scaler)
 
     dataframes.append((X_train, X_test, y_train, y_test))
