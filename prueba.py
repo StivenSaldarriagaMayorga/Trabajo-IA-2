@@ -50,9 +50,11 @@ def obtener_caracteristicas_y_objetivo(df: pd.DataFrame):
     return X, y
 
 
-def escalar_datos(X):
+def escalar_datos(X_train,X_test):
     scaler=StandardScaler()
-    return scaler.fit_transform(X)
+    X_train_scaled=scaler.fit_transform(X_train)
+    X_test_scaled=scaler.transform(X_test)
+    return X_train_scaled, X_test_scaled
 
 
 #Separar los datos en conjunto de entrenamiento y prueba
@@ -137,7 +139,6 @@ for i in range(8):
 
 
     if i in {4,5,6,7}:
-        X_train = escalar_datos(X_train)
-        X_test = escalar_datos(X_test)
+        X_train, X_test = escalar_datos(X_train, X_test)
 
     dataframes.append((X_train, X_test, y_train, y_test))
