@@ -2,6 +2,7 @@
 
 #Importar las librerías necesarias
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
@@ -19,6 +20,8 @@ df=df.drop(columns=['subscription_type','is_churned'])
 
 #Estrablecer semilla
 seed=852
+np.random.seed(seed)
+
 
 #preprocesamiento
 
@@ -50,7 +53,7 @@ def escalar_datos(X_train,X_test):
     scaler=StandardScaler()
     X_train_scaled=scaler.fit_transform(X_train)
     X_test_scaled=scaler.transform(X_test)
-    return X_train_scaled,X_test_scaled
+    return pd.DataFrame(X_train_scaled, columns=X_train.columns),pd.DataFrame(X_test_scaled, columns=X_test.columns)
 
 
 
@@ -58,7 +61,11 @@ def escalar_datos(X_train,X_test):
 #Balanceo de clases:
 #Balanceada:
 def balancear_clases(X, y):
-    df = pd.concat([X, y], axis=1)
+    if not isinstance(X, pd.DataFrame):
+        X = pd.DataFrame(X)
+    if not isinstance(y, pd.Series):
+        y = pd.Series(y, name='churn_plan_class')
+    df = pd.concat([X,y],axis=1)
     min_count = df['churn_plan_class'].value_counts().min()
     clases_balanceadas = []
     for _, grupo in df.groupby('churn_plan_class'):
@@ -70,11 +77,9 @@ def balancear_clases(X, y):
 
 """print(X_train_scaled)
 print(X_test_scaled)"""
+#OUTLAIERS:
 
-
-#OTLAIERS:
-
-#SIN OTLIERS
+#SIN OUTLIERS
 
 
 def sin_outliers_iqr(df, y='churn_plan_class', k=1.5):
@@ -85,9 +90,9 @@ def sin_outliers_iqr(df, y='churn_plan_class', k=1.5):
     upper =  Q3 + k*IQR
     mask = ~((df.drop(columns=y) < lower) | (df.drop(columns=y) > upper)).any(axis=1)
     data_clean = df.loc[mask].reset_index(drop=True)
-    X_clean = data_clean.drop(columns=[y]).values
-    y_clean = data_clean[y].values
-    return X_clean, y_clean, data_clean 
+    X_clean = data_clean.drop(columns=[y]) #.values
+    y_clean = data_clean[y] #.values
+    return X_clean, y_clean
 
 def con_outliers_5(df, y='churn_plan_class', target=0.05, tol=0.002):
 
@@ -113,3 +118,28 @@ def con_outliers_5(df, y='churn_plan_class', target=0.05, tol=0.002):
     y_5 = data_5[y].values
     return X_5, y_5, data_5
 
+
+
+dataframes=[]
+for i in range(8):
+    df_aux = df.copy()
+    df_aux = Normalizacion_CC(df_aux)
+    X, y = obtener_caracteristicas_y_objetivo(df_aux)
+    X_train, X_test, y_train, y_test = dividir_datos(X, y, seed)
+
+    if i in {4,5,6,7}:
+        X_train_scaled, X_test_scaled = escalar_datos(X_train, X_test)
+    
+    if i in {0, 1, 4, 5}:
+        X_train, y_train = sin_outliers_iqr(pd.concat([X_train, y_train], axis=1))
+    else:  
+        X_train, y_train = con_outliers_5(pd.concat([X_train, y_train], axis=1))
+    
+    if i in {1, 3, 5, 7}:
+        X_train, y_train = balancear_clases(X_train, y_train)
+    
+    dataframes.append((X_train, X_test, y_train, y_test))
+
+print(dataframes)
+
+   
