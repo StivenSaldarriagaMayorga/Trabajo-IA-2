@@ -215,6 +215,10 @@ for i in range(8):
         X_train, y_train = con_outliers_5(X_train, y_train)
 
     use_scaler = i in {4, 5, 6, 7}
+    # preprocess se encarga tanto de convertir variables categóricas en numéricas como del
+    # escalado, dependiendo de si la columna es categórica o numérica. Se realiza la conversión de
+    # categóricas a numéricas con OneHotEncoding independiende del dataset, y se realiza escalado
+    # únicamente para los datasets 5, 6, 7 y 8
     X_train, X_test = preprocess(X_train, X_test, use_scaler=use_scaler)
 
     if i in {1, 3, 5, 7}:
