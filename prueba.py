@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from imblearn.under_sampling import RandomUnderSampler
 from ucimlrepo import fetch_ucirepo
@@ -192,6 +192,8 @@ df = obtener_dataset()
 dataframes = []
 for i in range(8):
     X_train, X_test, y_train, y_test = make_train_test_split(df)
+    le = LabelEncoder()
+    le.fit(y_train)
 
     if i in {1, 3, 5, 7}:
         X_train, y_train = balancear_clases(X_train, y_train)
@@ -204,5 +206,8 @@ for i in range(8):
     # categóricas a numéricas y escalado
     use_scaler = i in {4, 5, 6, 7}
     X_train, X_test = preprocess(X_train, X_test, use_scaler=use_scaler)
+
+    y_train = le.transform(y_train)
+    y_test = le.transform(y_test)
 
     dataframes.append((X_train, X_test, y_train, y_test))

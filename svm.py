@@ -25,8 +25,8 @@ def plot_decision_boundary(idx, titulo, X, y, model):
     pca = PCA(n_components=2)
     X = pca.fit_transform(X)
 
-    le = LabelEncoder()
-    y = le.fit_transform(y)
+    # le = LabelEncoder()
+    # y = le.fit_transform(y)
 
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
@@ -112,13 +112,13 @@ def entrenar_y_evaluar(idx, titulo, datos, classifier, kernel, *, C, **kwargs):
 
     metricas = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
 
-    X = vstack((X_train, X_test))
-    y = pd.concat((y_train, y_test))
-
-    plot_decision_boundary(idx, titulo, X, y, modelo)
-
-    if idx == 7:  # caso 8: curvas ROC y PR
-        plot_roc_pr(modelo, X_test, y_test)
+    # X = vstack((X_train, X_test))
+    # y = pd.concat((y_train, y_test))
+    #
+    # plot_decision_boundary(idx, titulo, X, y, modelo)
+    #
+    # if idx == 7:  # caso 8: curvas ROC y PR
+    #     plot_roc_pr(modelo, X_test, y_test)
 
     return metricas
 
