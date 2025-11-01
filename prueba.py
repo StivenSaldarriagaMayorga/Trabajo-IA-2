@@ -94,7 +94,7 @@ def make_column_transformer(*, use_scaler=False):
             )
         )
 
-    return ColumnTransformer(transformers=transformers)
+    return ColumnTransformer(transformers=transformers, remainder="passthrough")
 
 
 def preprocess(X_train, X_test, *, use_scaler):
