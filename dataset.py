@@ -1,145 +1,218 @@
-#!pip install scikit-learn
-
-#Importar las librerías necesarias
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.utils import resample
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
+from imblearn.under_sampling import RandomUnderSampler
+from ucimlrepo import fetch_ucirepo
 
-#Se leen los datos
-df=pd.read_csv('https://raw.githubusercontent.com/StivenSaldarriagaMayorga/Trabajo-IA-2/refs/heads/main/files/spotify_churn_dataset.csv')
+DATASET_Y_COLUMN = "VisitorTypeRevenue"
+DATASET_CAT_COLS = [
+    "Month",
+    "Weekend"
+]
+DATASET_NUM_COLS = [
+    "Administrative",
+    "Administrative_Duration",
+    "Informational",
+    "Informational_Duration",
+    "ProductRelated",
+    "ProductRelated_Duration",
+    "BounceRates",
+    "ExitRates",
+    "PageValues",
+    "SpecialDay",
+    "OperatingSystems",
+    "Browser",
+    "Region",
+    "TrafficType",
+    "Weekend"
+]
 
-#Usamos el último dígito de la cédula de Stiven Saldarriaga (7)
-df=df.iloc[:5700]
-
-#Preprocesamiento inicial
-df=df.set_index('user_id')
-df['churn_plan_class']=df['subscription_type']+df['is_churned'].map({1:'_Churn',0:'_NoChurn'})
-df=df.drop(columns=['subscription_type','is_churned'])
-
-#Estrablecer semilla
-seed=852
-np.random.seed(seed)
+SEED = 852
+np.random.seed(SEED)
 
 
-#preprocesamiento
+def obtener_dataset() -> pd.DataFrame:
+    """
+    Retorna un DataFrame de pandas con 5700 filas del dataset "Online Shoppers Purchasing
+    Intention" descargado del repositorio UCI Machine Learning
+    """
 
-#Normalización de los datos:
-#CC:
-def Normalizacion_CC(df):
-    CC=df.copy()
-    CC['gender']=CC['gender'].map({'Male':0,'Female':1,'Other':2})
-    CC['country']=CC['country'].map({'AU':0,'US':1,'DE':2,'UK':3,'IN':4,'PK':5,'FR':6,'CA':7})
-    CC['device_type']=CC['device_type'].map({'Desktop':0,'Mobile':1,'Web':2})
-    CC['churn_plan_class']=CC['churn_plan_class'].map({'Free_Churn':0,'Free_NoChurn':1,
-                                                     'Premium_Churn':2,'Premium_NoChurn':3,
-                                                     'Family_Churn':4,'Family_NoChurn':5,'Student_Churn':6,'Student_NoChurn':7})
-    return CC
+    dataset = fetch_ucirepo(id=468)
 
-#Dividir el conjunto de datos
-def obtener_caracteristicas_y_objetivo(df):
-    X = df[['gender','age','country','listening_time','songs_played_per_day','skip_rate','device_type','ads_listened_per_week','offline_listening']]
-    y = df['churn_plan_class']
+    X = dataset.data.features
+    y = dataset.data.targets["Revenue"]
+
+    columna_a_combinar = "VisitorType"
+    nuevo_y = X[columna_a_combinar]+y.astype(str)
+    nuevo_y.name = DATASET_Y_COLUMN
+
+    df = pd.concat([X.drop(columns=columna_a_combinar), nuevo_y], axis="columns")
+
+    df["Weekend"] = df["Weekend"].astype(int)
+
+    # Usamos el último dígito de la cédula de Stiven Saldarriaga (7)
+    df = df.sample(5700, random_state=SEED)
+
+    return df
+
+
+def make_xy(df: pd.DataFrame):
+    """
+    Retorna `X` (las columnas features de df) y `y` (la columna a predecir)
+    """
+    X = df.drop(columns=DATASET_Y_COLUMN)
+    y = df[DATASET_Y_COLUMN].copy()
+
     return X, y
 
-#Separar los datos en conjunto de entrenamiento y prueba
-def dividir_datos(X,y,seed):
-    X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.25,random_state=seed)
-    return X_train,X_test,y_train,y_test
 
-#ED:
-def escalar_datos(X_train,X_test):
-    scaler=StandardScaler()
-    X_train_scaled=scaler.fit_transform(X_train)
-    X_test_scaled=scaler.transform(X_test)
-    return pd.DataFrame(X_train_scaled, columns=X_train.columns),pd.DataFrame(X_test_scaled, columns=X_test.columns)
+def make_train_test_split(df: pd.DataFrame):
+    """
+    Separa los datos en conjuntos de entrenamiento y prueba
+    """
 
+    X, y = make_xy(df)
 
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.25,
+    )
 
-
-#Balanceo de clases:
-#Balanceada:
-def balancear_clases(X, y):
-    if not isinstance(X, pd.DataFrame):
-        X = pd.DataFrame(X)
-    if not isinstance(y, pd.Series):
-        y = pd.Series(y, name='churn_plan_class')
-    df = pd.concat([X,y],axis=1)
-    min_count = df['churn_plan_class'].value_counts().min()
-    clases_balanceadas = []
-    for _, grupo in df.groupby('churn_plan_class'):
-        grupo_res = resample(grupo,replace=False,n_samples=min_count,random_state=seed)
-        clases_balanceadas.append(grupo_res)
-    df_balanceado = pd.concat(clases_balanceadas)
-    return df_balanceado.drop(columns=['churn_plan_class']), df_balanceado['churn_plan_class']
+    return X_train, X_test, y_train, y_test
 
 
-"""print(X_train_scaled)
-print(X_test_scaled)"""
-#OUTLAIERS:
+def balancear_clases(X_train, y_train):
+    """
+    Balancea las clases del conjunto de datos de tal forma que las clases mayoritarias tengan
+    la misma cantidad de filas que las clases minoritarias
+    """
+    rus = RandomUnderSampler(random_state=SEED)
+    X_train, y_train = rus.fit_resample(X_train, y_train)
+    return X_train, y_train
 
-#SIN OUTLIERS
+
+def make_column_transformer(*, use_scaler=False):
+    """
+    Retorna un ColumnTransformer que convierte variables categóricas en numéricas mediante
+    OneHotEncoding. Si `use_scaler` es True, entonces también realiza escalado mediante
+    StandardScaler de las variables numéricas.
+    """
+
+    transformers: list = [
+        (
+            "encoder",
+            OneHotEncoder(handle_unknown="ignore"),
+            DATASET_CAT_COLS,
+        )
+    ]
+
+    if use_scaler:
+        transformers.append(
+            (
+                "scaler",
+                StandardScaler(),
+                DATASET_NUM_COLS,
+            )
+        )
+
+    return ColumnTransformer(transformers=transformers, remainder="passthrough")
 
 
-def sin_outliers_iqr(df, y='churn_plan_class', k=1.5):
-    Q1 = df.drop(columns=y).quantile(0.25)
-    Q3 = df.drop(columns=y).quantile(.75)
+def preprocess(X_train, X_test, *, use_scaler):
+    """
+    Convierte variables categóricas en numéricas mediante OneHotEncoding. Si `use_scaler` es True,
+    entonces también realiza escalado mediante StandardScaler de las variables numéricas.
+    """
+
+    transformer = make_column_transformer(use_scaler=use_scaler)
+    X_train = transformer.fit_transform(X_train)
+    X_test = transformer.transform(X_test)
+    return X_train, X_test
+
+
+def make_clean_from_outliers_mask(X_train, *, k=1.5):
+    """
+    Retorna una máscara que al ser aplicada elimina outliers según el método IQR
+    """
+
+    Q1 = X_train[DATASET_NUM_COLS].quantile(0.25)
+    Q3 = X_train[DATASET_NUM_COLS].quantile(0.75)
     IQR = Q3 - Q1
-    lower = Q1 - k*IQR
-    upper =  Q3 + k*IQR
-    mask = ~((df.drop(columns=y) < lower) | (df.drop(columns=y) > upper)).any(axis=1)
-    data_clean = df.loc[mask].reset_index(drop=True)
-    X_clean = data_clean.drop(columns=[y]) #.values
-    y_clean = data_clean[y] #.values
-    return X_clean, y_clean
+    lower = Q1 - k * IQR
+    upper = Q3 + k * IQR
 
-def con_outliers_5(df, y='churn_plan_class', target=0.05, tol=0.002):
+    mask = ~((X_train[DATASET_NUM_COLS] < lower) | (X_train[DATASET_NUM_COLS] > upper)).any(axis=1)
 
-    num = df.select_dtypes(include='number').drop(columns=[y], errors='ignore')
-    k_lo, k_hi = 0.1, 3.0
-    mask = None
-
-    for _ in range(20):
-        k = 0.5*(k_lo + k_hi)
-        Q1, Q3 = num.quantile(.25), num.quantile(.75)
-        IQR = Q3 - Q1
-        lo, up = Q1 - k*IQR, Q3 + k*IQR
-        mask = (num.lt(lo) | num.gt(up)).any(axis=1)
-        rate = mask.mean()
-        if abs(rate - target) <= tol:
-            break
-        k_lo, k_hi = (k, k_hi) if rate > target else (k_lo, k)
-
-    data_5 = df.copy()
-    data_5['is_outlier_5pct'] = mask.astype(int)
-
-    X_5 = data_5.drop(columns=[y]).values
-    y_5 = data_5[y].values
-    return X_5, y_5, data_5
+    return mask
 
 
+def sin_outliers_iqr(X_train, y_train, *, k=1.5):
+    """
+    Retorna X_train y y_train sin outliers según el método IQR
+    """
 
-dataframes=[]
+    mask = make_clean_from_outliers_mask(X_train, k=k)
+
+    X_train_clean = X_train[mask]
+    y_train_clean = y_train.loc[X_train_clean.index]
+
+    return X_train_clean, y_train_clean
+
+
+def con_outliers_5(X_train, y_train, *, k=1.5, target=0.05):
+    """
+    Retorna X_train y y_train con outliers de tal forma que estos son el 5% de los datos. Esto se
+    realiza encontrando los outliers mediante el método IQR y seleccionando 95%, de la cantidad
+    total de datos, del conjunto sin outliers y 5% del conjunto con outliers. En caso de que no
+    hayan suficientes outliers para completar el 5% de la cantidad total de datos, entonces permite
+    que hayan filas de outliers duplicadas.
+    """
+
+    mask_clean = make_clean_from_outliers_mask(X_train, k=k)
+
+    n_clean = int(len(X_train) * (1 - target))
+    n_outlier = int(len(X_train) * target)
+
+    X_train_clean = X_train[mask_clean].sample(n_clean, random_state=SEED, replace=True)
+    X_train_outlier = X_train[~mask_clean].sample(
+        n_outlier, random_state=SEED, replace=True
+    )
+
+    X_train_5 = pd.concat([X_train_clean, X_train_outlier])
+    y_train_5 = y_train.loc[X_train_5.index]
+
+    return X_train_5, y_train_5
+
+
+df = obtener_dataset()
+X_train_orig, X_test_orig, y_train_orig, y_test_orig = make_train_test_split(df)
+le = LabelEncoder()
+le.fit(y_train_orig)
+
+dataframes = []
 for i in range(8):
-    df_aux = df.copy()
-    df_aux = Normalizacion_CC(df_aux)
-    X, y = obtener_caracteristicas_y_objetivo(df_aux)
-    X_train, X_test, y_train, y_test = dividir_datos(X, y, seed)
+    X_train = X_train_orig.copy()
+    X_test = X_test_orig.copy()
+    y_train = y_train_orig.copy()
+    y_test = y_test_orig.copy()
 
-    if i in {4,5,6,7}:
-        X_train, X_test = escalar_datos(X_train, X_test)
-    
-    if i in {0, 1, 4, 5}:
-        X_train, y_train = sin_outliers_iqr(pd.concat([X_train, y_train], axis=1))
-    else:  
-        X_train, y_train = con_outliers_5(pd.concat([X_train, y_train], axis=1))
-    
     if i in {1, 3, 5, 7}:
         X_train, y_train = balancear_clases(X_train, y_train)
-    
+
+    if i in {0, 1, 4, 5}:
+        X_train, y_train = sin_outliers_iqr(X_train, y_train)
+    else:
+        X_train, y_train = con_outliers_5(X_train, y_train)
+
+    # categóricas a numéricas y escalado
+    use_scaler = i in {4, 5, 6, 7}
+    X_train, X_test = preprocess(X_train, X_test, use_scaler=use_scaler)
+
+    y_train = le.transform(y_train)
+    y_test = le.transform(y_test)
+
     dataframes.append((X_train, X_test, y_train, y_test))
 
-print(dataframes)
-
-   
