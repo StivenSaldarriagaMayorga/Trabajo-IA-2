@@ -1,11 +1,9 @@
-from dataset import dataframes
+from dataset import calcular_metricas, dataframes
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import pandas as pd
 import matplotlib.pyplot as plt
 
 metricas_knn = []
-
 for i, (X_train, X_test, y_train, y_test) in enumerate(dataframes, start=1):
     print(f"\n===== Caso {i} =====")
 
@@ -14,25 +12,8 @@ for i, (X_train, X_test, y_train, y_test) in enumerate(dataframes, start=1):
 
     y_pred = knn.predict(X_test)
 
-    accuracy = accuracy_score(y_test, y_pred)
-    precision = precision_score(y_test, y_pred, average="weighted", zero_division=0)
-    recall = recall_score(y_test, y_pred, average="weighted")
-    f1 = f1_score(y_test, y_pred, average="weighted")
-
-    metricas = {
-        "accuracy": accuracy,
-        "precision": precision,
-        "recall": recall,
-        "f1": f1,
-    }
-
+    metricas = calcular_metricas(y_test, y_pred)
     metricas_knn.append(metricas)
-
-    print(f"Accuracy: {accuracy:.4f}")
-    print(f"Precisión: {precision:.4f}")
-    print(f"Recall: {recall:.4f}")
-    print(f"F1-score: {f1:.4f}")
-
 
 """ # Colores para aprobado y no aprobado
 colors = ["red" if aprobado == 0 else "green" for aprobado in y_test]

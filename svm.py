@@ -1,5 +1,5 @@
 from datetime import datetime
-from prueba import dataframes, le
+from dataset import calcular_metricas, dataframes, le
 import numpy as np
 import pandas as pd
 from scipy.sparse import vstack
@@ -61,7 +61,7 @@ def plot_roc_pr(modelo, X_test, y_test):
     precision, recall, _ = precision_recall_curve(y_test, y_scores)
     fpr, tpr, _ = roc_curve(y_test, y_scores)
 
-    # Paso 8: Calcular áreas bajo la curva
+    # Calcular áreas bajo la curva
     roc_auc = auc(fpr, tpr)
     pr_auc = average_precision_score(y_test, y_scores)
 
@@ -99,14 +99,7 @@ def entrenar_y_evaluar(idx, titulo, datos, classifier, kernel, *, C, **kwargs):
     modelo.fit(X_train, y_train)
     y_pred = modelo.predict(X_test)
 
-    accuracy = accuracy_score(y_test, y_pred)
-    precision = precision_score(
-        y_test, y_pred, average="weighted", zero_division=np.nan
-    )
-    recall = recall_score(y_test, y_pred, average="weighted")
-    f1 = f1_score(y_test, y_pred, average="weighted")
-
-    metricas = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
+    metricas = calcular_metricas(y_test, y_pred)
 
     X = vstack((X_train, X_test))
     y = np.concatenate((y_train, y_test))
@@ -119,6 +112,7 @@ def entrenar_y_evaluar(idx, titulo, datos, classifier, kernel, *, C, **kwargs):
     return metricas
 
 
+metricas_svm = []
 for idx, datos in enumerate(dataframes):
     print(f"====== Caso {idx + 1} ======")
     rbf_ovr = entrenar_y_evaluar(
@@ -137,3 +131,6 @@ for idx, datos in enumerate(dataframes):
         idx, "Lineal OvO", datos, OneVsOneClassifier, "linear", C=1.0
     )
     print("Lineal OvO:", lineal_ovo)
+
+    mejor = max((rbf_ovr, rbf_ovo, lineal_ovr, lineal_ovo), key=lambda x: x["f1"])
+    metricas_svm.append(mejor)
