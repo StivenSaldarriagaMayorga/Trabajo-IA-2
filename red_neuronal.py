@@ -7,7 +7,7 @@ from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import precision_score, recall_score, f1_score
 import numpy as np
 
-def Red_Neuronal(dataframe,metricas_red):
+def Red_Neuronal(dataframe):
     #Tomar los datos del dataframe
     X_train, X_test, y_train, y_test = dataframe
 
