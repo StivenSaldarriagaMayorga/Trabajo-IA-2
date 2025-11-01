@@ -199,6 +199,8 @@ def calcular_metricas(y_test, y_pred):
 
 df = obtener_dataset()
 X_train_orig, X_test_orig, y_train_orig, y_test_orig = make_train_test_split(df)
+
+# `le` codifica la columna objetivo para darle valores enteros a cada clase
 le = LabelEncoder()
 le.fit(y_train_orig)
 
