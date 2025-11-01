@@ -33,19 +33,19 @@ def plot_f1_max_por_algoritmo(f1):
 def plot_f1_medio_por_normalizacion_y_algoritmo(f1):
     ed_no = f1.iloc[:4, :].mean()
     ed_si = f1.iloc[:4, :].mean()
-    pd.DataFrame({"ED (NO)": ed_no, "ED (SI)": ed_si}).plot.bar(rot=0, title="F1-score medio por normalización y algoritmo", ylabel="F1-score")
+    return pd.DataFrame({"ED (NO)": ed_no, "ED (SI)": ed_si}).plot.bar(rot=0, title="F1-score medio por normalización y algoritmo", ylabel="F1-score")
 
 
 def plot_f1_medio_por_outliers_y_algoritmo(f1):
     outliers_no = f1.iloc[[0, 1, 4, 5], :].mean()
     outliers_si = f1.iloc[[2, 3, 6, 7], :].mean()
-    pd.DataFrame({"Outliers (NO)": outliers_no, "Outliers (SI)": outliers_si}).plot.bar(rot=0, title="F1-score medio por outliers y algoritmo", ylabel="F1-score")
+    return pd.DataFrame({"Outliers (NO)": outliers_no, "Outliers (SI)": outliers_si}).plot.bar(rot=0, title="F1-score medio por outliers y algoritmo", ylabel="F1-score")
 
 
 def plot_f1_medio_por_balanceo_y_algoritmo(f1):
     balanceo_no = f1.iloc[[0, 2, 4, 6], :].mean()
     balanceo_si = f1.iloc[[1, 3, 5, 7], :].mean()
-    pd.DataFrame({"Outliers (NO)": balanceo_no, "Outliers (SI)": balanceo_si}).plot.bar(rot=0, title="F1-score medio por balanceo y algoritmo", ylabel="F1-score")
+    return pd.DataFrame({"Outliers (NO)": balanceo_no, "Outliers (SI)": balanceo_si}).plot.bar(rot=0, title="F1-score medio por balanceo y algoritmo", ylabel="F1-score")
 
 
 figura1 = generar_figura1()
