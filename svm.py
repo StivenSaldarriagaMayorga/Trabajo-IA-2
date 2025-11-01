@@ -119,18 +119,20 @@ for idx, datos in enumerate(dataframes):
         idx, "RBF OvR", datos, OneVsRestClassifier, "rbf", C=1.0, gamma="auto"
     )
     print("RBF OvR:", rbf_ovr)
-    rbf_ovo = entrenar_y_evaluar(
-        idx, "RBF OvO", datos, OneVsOneClassifier, "rbf", C=1.0, gamma="auto"
-    )
-    print("RBF OvO:", rbf_ovo)
-    lineal_ovr = entrenar_y_evaluar(
-        idx, "Lineal OvR", datos, OneVsRestClassifier, "linear", C=1.0
-    )
-    print("Lineal OvR:", lineal_ovr)
-    lineal_ovo = entrenar_y_evaluar(
-        idx, "Lineal OvO", datos, OneVsOneClassifier, "linear", C=1.0
-    )
-    print("Lineal OvO:", lineal_ovo)
+    # rbf_ovo = entrenar_y_evaluar(
+    #     idx, "RBF OvO", datos, OneVsOneClassifier, "rbf", C=1.0, gamma="auto"
+    # )
+    # print("RBF OvO:", rbf_ovo)
+    # lineal_ovr = entrenar_y_evaluar(
+    #     idx, "Lineal OvR", datos, OneVsRestClassifier, "linear", C=1.0
+    # )
+    # print("Lineal OvR:", lineal_ovr)
+    # lineal_ovo = entrenar_y_evaluar(
+    #     idx, "Lineal OvO", datos, OneVsOneClassifier, "linear", C=1.0
+    # )
+    # print("Lineal OvO:", lineal_ovo)
 
-    mejor = max((rbf_ovr, rbf_ovo, lineal_ovr, lineal_ovo), key=lambda x: x["f1"])
-    metricas_svm.append(mejor)
+    # mejor = max((rbf_ovr, rbf_ovo), key=lambda x: x["f1"])
+    # metricas_svm.append(mejor)
+
+    metricas_svm.append(rbf_ovr)
