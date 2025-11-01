@@ -7,7 +7,9 @@ from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import precision_score, recall_score, f1_score
 import numpy as np
 
-def Red_Neuronal(dataframe):
+metricas_red = []
+
+def Red_Neuronal(dataframe,metricas_red):
     #Tomar los datos del dataframe
     X_train, X_test, y_train, y_test = dataframe
 
@@ -82,6 +84,9 @@ def Red_Neuronal(dataframe):
     recall = recall_score(y_true_classes, y_pred_classes, average='weighted')
     f1 = f1_score(y_true_classes, y_pred_classes, average='weighted')
 
+    metricas = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
+    metricas_red.append(metricas)
+
     print(f"Accuracy: {accuracy:.4f}")
     print(f"Precisión: {precision:.4f}")
     print(f"Recall: {recall:.4f}")
@@ -89,4 +94,5 @@ def Red_Neuronal(dataframe):
     print("-"*50)
 
 for dataframe in dataframes:
-    Red_Neuronal(dataframe)
+    Red_Neuronal(dataframe,metricas_red)
+
