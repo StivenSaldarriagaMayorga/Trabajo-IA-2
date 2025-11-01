@@ -1,4 +1,4 @@
-from dataset import dataframes
+from dataset import calcular_metricas, dataframes
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import Input, regularizers
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization, GaussianNoise
@@ -6,8 +6,6 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import precision_score, recall_score, f1_score
 import numpy as np
-
-metricas_red = []
 
 def Red_Neuronal(dataframe,metricas_red):
     #Tomar los datos del dataframe
@@ -80,19 +78,12 @@ def Red_Neuronal(dataframe,metricas_red):
     y_pred_classes = np.argmax(y_pred_nn, axis=1)
     y_true_classes = np.argmax(y_test_nn, axis=1)
 
-    precision = precision_score(y_true_classes, y_pred_classes, average='weighted')
-    recall = recall_score(y_true_classes, y_pred_classes, average='weighted')
-    f1 = f1_score(y_true_classes, y_pred_classes, average='weighted')
-
-    metricas = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
-    metricas_red.append(metricas)
-
-    print(f"Accuracy: {accuracy:.4f}")
-    print(f"Precisión: {precision:.4f}")
-    print(f"Recall: {recall:.4f}")
-    print(f"F1-Score: {f1:.4f}")
+    metricas = calcular_metricas(y_true_classes, y_pred_classes)
+    print(metricas)
     print("-"*50)
+    return metricas
 
+metricas_nn = []
 for dataframe in dataframes:
-    Red_Neuronal(dataframe,metricas_red)
-
+    metricas = Red_Neuronal(dataframe)
+    metricas_nn.append(metricas)

@@ -13,6 +13,7 @@ for i, (X_train, X_test, y_train, y_test) in enumerate(dataframes, start=1):
     y_pred = knn.predict(X_test)
 
     metricas = calcular_metricas(y_test, y_pred)
+    print(metricas)
     metricas_knn.append(metricas)
 
 """ # Colores para aprobado y no aprobado
