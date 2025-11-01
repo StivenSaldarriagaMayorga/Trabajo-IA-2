@@ -1,7 +1,8 @@
-from dataset import dataframes, seed
+from prueba import dataframes, SEED as seed
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier, plot_tree
+
 
 def Decision_Tree(dfcase, *, max_depth=5, random_state=None):
     if random_state is None:
@@ -18,7 +19,6 @@ def Decision_Tree(dfcase, *, max_depth=5, random_state=None):
             X_test = X_test.toarray()
         feature_names = [f"f{i}" for i in range(X_train.shape[1])]
 
-
     y_train = np.ravel(np.array(y_train))
     y_test = np.ravel(np.array(y_test))
     m_tr = ~np.isnan(y_train)
@@ -26,7 +26,9 @@ def Decision_Tree(dfcase, *, max_depth=5, random_state=None):
     X_train, y_train = X_train[m_tr], y_train[m_tr]
     X_test, y_test = X_test[m_te], y_test[m_te]
 
-    model = DecisionTreeClassifier(criterion="gini", max_depth=max_depth, random_state=random_state)
+    model = DecisionTreeClassifier(
+        criterion="gini", max_depth=max_depth, random_state=random_state
+    )
     model.fit(X_train, y_train)
     acc = model.score(X_test, y_test)
     print(f"Accuracy: {acc:.4f}")
@@ -36,17 +38,22 @@ def Decision_Tree(dfcase, *, max_depth=5, random_state=None):
         model,
         feature_names=feature_names,
         class_names=[
-            "Free_Churn","Free_NoChurn",
-            "Premium_Churn","Premium_NoChurn",
-            "Family_Churn","Family_NoChurn",
-            "Student_Churn","Student_NoChurn"
+            "Free_Churn",
+            "Free_NoChurn",
+            "Premium_Churn",
+            "Premium_NoChurn",
+            "Family_Churn",
+            "Family_NoChurn",
+            "Student_Churn",
+            "Student_NoChurn",
         ],
         filled=True,
-        rounded=True
+        rounded=True,
     )
     plt.title("Árbol de Decisión (criterio: Gini)")
     plt.show()
     return acc
+
 
 for dfcase in dataframes:
     Decision_Tree(dfcase, max_depth=5, random_state=seed)
