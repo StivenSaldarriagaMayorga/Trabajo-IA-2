@@ -188,12 +188,16 @@ def con_outliers_5(X_train, y_train, *, k=1.5, target=0.05):
 
 
 df = obtener_dataset()
+X_train_orig, X_test_orig, y_train_orig, y_test_orig = make_train_test_split(df)
+le = LabelEncoder()
+le.fit(y_train_orig)
 
 dataframes = []
 for i in range(8):
-    X_train, X_test, y_train, y_test = make_train_test_split(df)
-    le = LabelEncoder()
-    le.fit(y_train)
+    X_train = X_train_orig.copy()
+    X_test = X_test_orig.copy()
+    y_train = y_train_orig.copy()
+    y_test = y_test_orig.copy()
 
     if i in {1, 3, 5, 7}:
         X_train, y_train = balancear_clases(X_train, y_train)

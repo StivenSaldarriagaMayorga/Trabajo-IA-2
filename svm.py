@@ -1,5 +1,5 @@
 from datetime import datetime
-from prueba import dataframes
+from prueba import dataframes, le
 import numpy as np
 import pandas as pd
 from scipy.sparse import vstack
@@ -17,16 +17,12 @@ from sklearn.metrics import (
 )
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import LabelEncoder
 
 
 # Función para plotear los límites de decisión
 def plot_decision_boundary(idx, titulo, X, y, model):
     pca = PCA(n_components=2)
     X = pca.fit_transform(X)
-
-    # le = LabelEncoder()
-    # y = le.fit_transform(y)
 
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
@@ -39,7 +35,7 @@ def plot_decision_boundary(idx, titulo, X, y, model):
     grid_points_original = pca.inverse_transform(grid_points)
 
     Z = model.predict(grid_points_original)
-    Z = le.transform(Z)
+    # Z = le.transform(Z)
     Z = Z.reshape(xx.shape)
 
     plt.contourf(xx, yy, Z, vmin=y.min(), vmax=y.max(), alpha=0.8, cmap=plt.cm.RdYlBu)
@@ -112,13 +108,13 @@ def entrenar_y_evaluar(idx, titulo, datos, classifier, kernel, *, C, **kwargs):
 
     metricas = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
 
-    # X = vstack((X_train, X_test))
-    # y = pd.concat((y_train, y_test))
-    #
-    # plot_decision_boundary(idx, titulo, X, y, modelo)
-    #
-    # if idx == 7:  # caso 8: curvas ROC y PR
-    #     plot_roc_pr(modelo, X_test, y_test)
+    X = vstack((X_train, X_test))
+    y = np.concatenate((y_train, y_test))
+
+    plot_decision_boundary(idx, titulo, X, y, modelo)
+
+    if idx == 7:  # caso 8: curvas ROC y PR
+        plot_roc_pr(modelo, X_test, y_test)
 
     return metricas
 
