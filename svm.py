@@ -30,7 +30,8 @@ def plot_decision_boundary(idx, titulo, X, y, model):
 
     x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
     y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.02), np.arange(y_min, y_max, 0.02))
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max),
+                         np.linspace(y_min, y_max))
 
     # Cada punto de la malla está en 2D (PC1, PC2)
     # Necesitamos llevarlo al espacio original para usar el modelo
@@ -109,6 +110,8 @@ def entrenar_y_evaluar(idx, titulo, datos, classifier, kernel, *, C, **kwargs):
     recall = recall_score(y_test, y_pred, average="weighted")
     f1 = f1_score(y_test, y_pred, average="weighted")
 
+    metricas = {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
+
     X = vstack((X_train, X_test))
     y = pd.concat((y_train, y_test))
 
@@ -117,7 +120,7 @@ def entrenar_y_evaluar(idx, titulo, datos, classifier, kernel, *, C, **kwargs):
     if idx == 7:  # caso 8: curvas ROC y PR
         plot_roc_pr(modelo, X_test, y_test)
 
-    return {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
+    return metricas
 
 
 for idx, datos in enumerate(dataframes):
