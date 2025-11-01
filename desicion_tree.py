@@ -1,4 +1,4 @@
-from dataset import dataframes, SEED as seed
+from dataset import calcular_metricas, dataframes, SEED as seed
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier, plot_tree
@@ -30,8 +30,8 @@ def Decision_Tree(dfcase, *, max_depth=5, random_state=None):
         criterion="gini", max_depth=max_depth, random_state=random_state
     )
     model.fit(X_train, y_train)
-    acc = model.score(X_test, y_test)
-    print(f"Accuracy: {acc:.4f}")
+
+    y_pred = model.predict(X_test)
 
     plt.figure(figsize=(16, 12))
     plot_tree(
@@ -52,8 +52,10 @@ def Decision_Tree(dfcase, *, max_depth=5, random_state=None):
     )
     plt.title("Árbol de Decisión (criterio: Gini)")
     plt.show()
-    return acc
+    return calcular_metricas(y_test, y_pred)
 
 
+metricas_dt = []
 for dfcase in dataframes:
-    Decision_Tree(dfcase, max_depth=5, random_state=seed)
+    metricas = Decision_Tree(dfcase, max_depth=5, random_state=seed)
+    metricas_dt.append(metricas)

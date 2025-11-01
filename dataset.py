@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
@@ -185,6 +186,15 @@ def con_outliers_5(X_train, y_train, *, k=1.5, target=0.05):
     y_train_5 = y_train.loc[X_train_5.index]
 
     return X_train_5, y_train_5
+
+
+def calcular_metricas(y_test, y_pred):
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average="weighted", zero_division=np.nan)
+    recall = recall_score(y_test, y_pred, average="weighted")
+    f1 = f1_score(y_test, y_pred, average="weighted")
+
+    return {"accuracy": accuracy, "precision": precision, "recall": recall, "f1": f1}
 
 
 df = obtener_dataset()
