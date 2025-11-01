@@ -1,4 +1,4 @@
-from prueba import dataframes, SEED as seed
+from dataset import dataframes, SEED as seed
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeClassifier, plot_tree

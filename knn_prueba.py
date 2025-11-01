@@ -1,4 +1,4 @@
-from prueba import dataframes
+from dataset import dataframes
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import pandas as pd
