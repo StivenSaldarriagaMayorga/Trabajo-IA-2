@@ -4,6 +4,8 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import pandas as pd
 import matplotlib.pyplot as plt
 
+metricas_knn = []
+
 for i, (X_train, X_test, y_train, y_test) in enumerate(dataframes, start=1):
     print(f"\n===== Caso {i} =====")
 
@@ -12,15 +14,24 @@ for i, (X_train, X_test, y_train, y_test) in enumerate(dataframes, start=1):
 
     y_pred = knn.predict(X_test)
 
-    acc = accuracy_score(y_test, y_pred)
-    """ prec = precision_score(y_test, y_pred, average="macro", zero_division=0)
-    rec = recall_score(y_test, y_pred, average="macro", zero_division=0)
-    f1 = f1_score(y_test, y_pred, average="macro", zero_division=0) """
+    accuracy = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred, average="weighted", zero_division=0)
+    recall = recall_score(y_test, y_pred, average="weighted")
+    f1 = f1_score(y_test, y_pred, average="weighted")
 
-    print(f"Accuracy: {acc:.4f}")
-    """ print(f"Precisión: {prec:.4f}")
-    print(f"Recall: {rec:.4f}")
-    print(f"F1-score: {f1:.4f}") """
+    metricas = {
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+    }
+
+    metricas_knn.append(metricas)
+
+    print(f"Accuracy: {accuracy:.4f}")
+    print(f"Precisión: {precision:.4f}")
+    print(f"Recall: {recall:.4f}")
+    print(f"F1-score: {f1:.4f}")
 
 
 """ # Colores para aprobado y no aprobado
