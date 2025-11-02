@@ -51,9 +51,9 @@ def plot_f1_medio_por_balanceo_y_algoritmo(f1):
 
 figura1 = generar_figura1()
 f1 = figura1.xs("f1", axis=1, level=1)
+f1.columns = ['\n'.join(textwrap.wrap(label, 15)) for label in f1.columns]
 
 plot_f1_max_por_algoritmo(f1)
 plot_f1_medio_por_normalizacion_y_algoritmo(f1)
 plot_f1_medio_por_outliers_y_algoritmo(f1)
 plot_f1_medio_por_balanceo_y_algoritmo(f1)
-f1.columns = ['\n'.join(textwrap.wrap(label, 15)) for label in f1.columns]
