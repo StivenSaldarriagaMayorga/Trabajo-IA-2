@@ -118,14 +118,14 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
 metricas_svm = []
 for idx in range(len(dataframes)):
     print(f"====== Caso {idx + 1} ======")
-    # rbf_ovr = entrenar_y_evaluar(
-    #     idx, "RBF OvR", OneVsRestClassifier, "rbf", C=1.0, gamma="auto"
-    # )
-    # print("RBF OvR:", rbf_ovr)
-    rbf_ovo = entrenar_y_evaluar(
-        idx, "RBF OvO", OneVsOneClassifier, "rbf", C=1.0, gamma="auto"
+    rbf_ovr = entrenar_y_evaluar(
+        idx, "RBF OvR", OneVsRestClassifier, "rbf", C=1.0, gamma="auto"
     )
-    print("RBF OvO:", rbf_ovo)
+    print("RBF OvR:", rbf_ovr)
+    # rbf_ovo = entrenar_y_evaluar(
+    #     idx, "RBF OvO", OneVsOneClassifier, "rbf", C=1.0, gamma="auto"
+    # )
+    # print("RBF OvO:", rbf_ovo)
     # lineal_ovr = entrenar_y_evaluar(
     #     idx, "Lineal OvR", OneVsRestClassifier, "linear", C=1.0
     # )
@@ -137,4 +137,4 @@ for idx in range(len(dataframes)):
 
     # mejor = max((rbf_ovr, rbf_ovo, lineal_ovr, lineal_ovo), key=lambda x: x["f1"])
     # metricas_svm.append(mejor)
-    metricas_svm.append(rbf_ovo)
+    metricas_svm.append(rbf_ovr)
