@@ -307,7 +307,7 @@ def probar_modelo(modelo, preprocesador):
         c = generar_caso_de_prueba()
         cn = preprocesador.transform(c)
         prediccion = modelo.predict(cn)
-        prediccion = le.inverse_transform(prediccion)
+        prediccion = le.inverse_transform(prediccion)[0]
         c["Predicción"] = prediccion
         pruebas.append(c)
         print(f"> Caso de prueba {i+1}:", c)
