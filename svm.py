@@ -118,7 +118,7 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
     casos = casos.reset_index()
     casos = casos.round(2)
     print(casos.T)
-    # casos.T.to_csv(f"casos-svm/caso-{idx+1}.csv", index=False)
+    # casos.T.to_csv(f"casos-svm/caso-{idx+1}.csv")
 
     # gráfico región de decisión
     X = np.concatenate((X_train, X_test))
