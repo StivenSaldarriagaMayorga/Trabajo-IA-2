@@ -27,7 +27,6 @@ DATASET_NUM_COLS = [
     "Browser",
     "Region",
     "TrafficType",
-    "Weekend"
 ]
 
 SEED = 852
@@ -50,8 +49,6 @@ def obtener_dataset() -> pd.DataFrame:
     nuevo_y.name = DATASET_Y_COLUMN
 
     df = pd.concat([X.drop(columns=columna_a_combinar), nuevo_y], axis="columns")
-
-    df["Weekend"] = df["Weekend"].astype(int)
 
     # Usamos el último dígito de la cédula de Stiven Saldarriaga (7)
     df = df.sample(5700, random_state=SEED)

@@ -101,7 +101,7 @@ def entrenar_y_evaluar(idx, titulo, datos, classifier, kernel, *, C, **kwargs):
 
     metricas = calcular_metricas(y_test, y_pred)
 
-    X = vstack((X_train, X_test))
+    X = np.concatenate((X_train, X_test))
     y = np.concatenate((y_train, y_test))
 
     plot_decision_boundary(idx, titulo, X, y, modelo)
