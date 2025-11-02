@@ -130,7 +130,7 @@ def preprocess(X_train, X_test, *, use_scaler):
     transformer = make_column_transformer(use_scaler=use_scaler)
     X_train = transformer.fit_transform(X_train)
     X_test = transformer.transform(X_test)
-    return X_train, X_test
+    return X_train, X_test, transformer
 
 
 def make_clean_from_outliers_mask(X_train, *, k=1.5):
@@ -204,6 +204,7 @@ le = LabelEncoder()
 le.fit(y_train_orig)
 
 dataframes = []
+preprocesadores = []
 for i in range(8):
     X_train = X_train_orig.copy()
     X_test = X_test_orig.copy()
@@ -220,7 +221,8 @@ for i in range(8):
     # escalado, dependiendo de si la columna es categórica o numérica. Se realiza la conversión de
     # categóricas a numéricas con OneHotEncoding independiende del dataset, y se realiza escalado
     # únicamente para los datasets 5, 6, 7 y 8
-    X_train, X_test = preprocess(X_train, X_test, use_scaler=use_scaler)
+    X_train, X_test, preprocesador = preprocess(X_train, X_test, use_scaler=use_scaler)
+    preprocesadores.append(preprocesador)
 
     if i in {1, 3, 5, 7}:
         X_train, y_train = balancear_clases(X_train, y_train)
@@ -230,3 +232,40 @@ for i in range(8):
 
     dataframes.append((X_train, X_test, y_train, y_test))
 
+
+def generar_caso_de_prueba():
+    distributions = {
+            "Administrative": "discrete",
+            "Administrative_Duration": "exponential",
+            "Informational": "discrete",
+            "Informational_Duration": "exponential",
+            "ProductRelated": "discrete",
+            "ProductRelated_Duration": "exponential",
+            "BounceRates": "exponential",
+            "ExitRates": "exponential",
+            "PageValues": "exponential",
+            "SpecialDay": "exponential",
+            "Month": "discrete",
+            "OperatingSystems": "discrete",
+            "Browser": "discrete",
+            "Region": "discrete",
+            "TrafficType": "discrete",
+            "Weekend": "discrete"
+    }
+
+    result = {}
+
+    for col, dist in distributions.items():
+        vc = df[col].value_counts()
+        keys = vc.index.values
+        values = vc.values
+        total = values.sum()
+
+        if dist == "discrete":
+            probabilities = values / total
+            result[col] = np.random.choice(keys, p=probabilities)
+        elif dist == "exponential":
+            mean = df[col].mean()
+            result[col] = np.random.exponential(mean)
+
+    return pd.DataFrame([result])

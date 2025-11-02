@@ -1,5 +1,5 @@
 from datetime import datetime
-from dataset import calcular_metricas, dataframes, le
+from dataset import calcular_metricas, dataframes, generar_caso_de_prueba, le, preprocesadores
 import numpy as np
 import pandas as pd
 from scipy.sparse import vstack
@@ -94,19 +94,27 @@ def plot_roc_pr(modelo, X_test, y_test):
     plt.show()
 
 
-def entrenar_y_evaluar(idx, titulo, datos, classifier, kernel, *, C, **kwargs):
-    X_train, X_test, y_train, y_test = datos
+def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
+    X_train, X_test, y_train, y_test = dataframes[idx]
     modelo = classifier(SVC(kernel=kernel, C=C, probability=idx == 7, **kwargs))
     modelo.fit(X_train, y_train)
     y_pred = modelo.predict(X_test)
 
     metricas = calcular_metricas(y_test, y_pred)
 
+    # casos de prueba
+    for i in range(3):
+        c = generar_caso_de_prueba()
+        c = preprocesadores[idx].transform(c)
+        print(f"> Caso de prueba {i+1}:", c)
+        print(">> Predicción:", modelo.predict(c))
+
+    # gráfico región de decisión
     X = np.concatenate((X_train, X_test))
     y = np.concatenate((y_train, y_test))
-
     plot_decision_boundary(idx, titulo, X, y, modelo)
 
+    # gráfico curvas roc y pr para el caso 8
     if idx == 7:  # caso 8: curvas ROC y PR
         plot_roc_pr(modelo, X_test, y_test)
 
@@ -117,23 +125,22 @@ metricas_svm = []
 for idx, datos in enumerate(dataframes):
     print(f"====== Caso {idx + 1} ======")
     rbf_ovr = entrenar_y_evaluar(
-        idx, "RBF OvR", datos, OneVsRestClassifier, "rbf", C=1.0, gamma="auto"
+        idx, "RBF OvR", OneVsRestClassifier, "rbf", C=1.0, gamma="auto"
     )
     print("RBF OvR:", rbf_ovr)
     # rbf_ovo = entrenar_y_evaluar(
-    #     idx, "RBF OvO", datos, OneVsOneClassifier, "rbf", C=1.0, gamma="auto"
+    #     idx, "RBF OvO", OneVsOneClassifier, "rbf", C=1.0, gamma="auto"
     # )
     # print("RBF OvO:", rbf_ovo)
     # lineal_ovr = entrenar_y_evaluar(
-    #     idx, "Lineal OvR", datos, OneVsRestClassifier, "linear", C=1.0
+    #     idx, "Lineal OvR", OneVsRestClassifier, "linear", C=1.0
     # )
     # print("Lineal OvR:", lineal_ovr)
     # lineal_ovo = entrenar_y_evaluar(
-    #     idx, "Lineal OvO", datos, OneVsOneClassifier, "linear", C=1.0
+    #     idx, "Lineal OvO", OneVsOneClassifier, "linear", C=1.0
     # )
     # print("Lineal OvO:", lineal_ovo)
 
-    # mejor = max((rbf_ovr, rbf_ovo), key=lambda x: x["f1"])
+    # mejor = max((rbf_ovr, rbf_ovo, lineal_ovr, lineal_ovo), key=lambda x: x["f1"])
     # metricas_svm.append(mejor)
-
     metricas_svm.append(rbf_ovr)
