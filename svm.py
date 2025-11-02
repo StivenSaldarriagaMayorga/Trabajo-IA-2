@@ -103,11 +103,18 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
     metricas = calcular_metricas(y_test, y_pred)
 
     # casos de prueba
+    casos = []
     for i in range(3):
         c = generar_caso_de_prueba()
-        c = preprocesadores[idx].transform(c)
+        cn = preprocesadores[idx].transform(c)
+        prediccion = modelo.predict(cn)
+        c["Predicción"] = prediccion
+        casos.append(c)
         print(f"> Caso de prueba {i+1}:", c)
-        print(">> Predicción:", modelo.predict(c))
+        print(">> Predicción:", prediccion)
+    casos = pd.concat(casos)
+    casos.index = range(1, 4)
+    # casos.T.to_csv(f"casos-svm/caso-{idx+1}.csv")
 
     # gráfico región de decisión
     X = np.concatenate((X_train, X_test))
