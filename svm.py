@@ -114,7 +114,7 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
         print(">> Predicción:", prediccion)
     casos = pd.concat(casos)
     casos.index = range(1, 4)
-    casos.round(2)
+    casos = casos.round(2)
     # casos.T.to_csv(f"casos-svm/caso-{idx+1}.csv")
 
     # gráfico región de decisión
