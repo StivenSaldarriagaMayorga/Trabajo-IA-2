@@ -116,7 +116,7 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
 
 
 metricas_svm = []
-for idx, datos in enumerate(dataframes):
+for idx in range(len(dataframes)):
     print(f"====== Caso {idx + 1} ======")
     rbf_ovr = entrenar_y_evaluar(
         idx, "RBF OvR", OneVsRestClassifier, "rbf", C=1.0, gamma="auto"
