@@ -1,4 +1,7 @@
 from datetime import datetime
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.utils import class_weight
 from dataset import calcular_metricas, dataframes, le, preprocesadores, probar_modelo
 import numpy as np
 import pandas as pd
@@ -90,6 +93,19 @@ def plot_roc_pr(modelo, X_test, y_test):
     plt.show()
 
 
+def buscar_hiperparametros():
+    for idx in range(len(dataframes)):
+        print(f"====== Caso {idx + 1} ======")
+        param_grid = {
+          'estimator__C': [0.01, 0.1, 1, 10, 100],
+          'estimator__gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1],
+        }
+        grid = GridSearchCV(OneVsRestClassifier(SVC(kernel="rbf")), param_grid, scoring='f1_macro', cv=5, n_jobs=-1)
+        X_train, _, y_train, _ = dataframes[idx]
+        grid.fit(X_train, y_train)
+        print(grid.best_params_, grid.best_score_)
+
+
 def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
     X_train, X_test, y_train, y_test = dataframes[idx]
     modelo = classifier(SVC(kernel=kernel, C=C, probability=idx == 7, **kwargs))
@@ -115,15 +131,29 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
     return metricas
 
 
+# buscar_hiperparametros()
+hiperparametros = [
+    {'C': 10, 'gamma': 0.001},
+    {'C': 100, 'gamma': 0.01},
+    {'C': 1, 'gamma': 1},
+    {'C': 100, 'gamma': 0.001},
+    {'C': 10, 'gamma': 'scale'},
+    {'C': 10, 'gamma': 1},
+    {'C': 100, 'gamma': 1},
+    {'C': 100, 'gamma': 1}
+]
+
 metricas_svm = []
 for idx in range(len(dataframes)):
     print(f"====== Caso {idx + 1} ======")
     rbf_ovr = entrenar_y_evaluar(
-        idx, "RBF OvR", OneVsRestClassifier, "rbf", C=1.0, gamma="auto"
+        idx, "RBF OvR", OneVsRestClassifier, "rbf",
+        **hiperparametros[idx]
     )
     print("RBF OvR:", rbf_ovr)
     # rbf_ovo = entrenar_y_evaluar(
-    #     idx, "RBF OvO", OneVsOneClassifier, "rbf", C=1.0, gamma="auto"
+    #     idx, "RBF OvO", OneVsOneClassifier, "rbf",
+    #     **hiperparametros[idx]
     # )
     # print("RBF OvO:", rbf_ovo)
     # lineal_ovr = entrenar_y_evaluar(
