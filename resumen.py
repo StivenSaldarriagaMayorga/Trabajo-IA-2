@@ -3,6 +3,7 @@ from knn import metricas_knn
 from desicion_tree import metricas_dt
 from svm import metricas_svm
 from red_neuronal import metricas_nn
+import textwrap
 
 
 def generar_figura1():
@@ -55,3 +56,4 @@ plot_f1_max_por_algoritmo(f1)
 plot_f1_medio_por_normalizacion_y_algoritmo(f1)
 plot_f1_medio_por_outliers_y_algoritmo(f1)
 plot_f1_medio_por_balanceo_y_algoritmo(f1)
+f1.columns = ['\n'.join(textwrap.wrap(label, 15)) for label in f1.columns]
