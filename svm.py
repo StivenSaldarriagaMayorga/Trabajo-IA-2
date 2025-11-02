@@ -21,6 +21,7 @@ from sklearn.decomposition import PCA
 
 # Función para plotear los límites de decisión
 def plot_decision_boundary(idx, titulo, X, y, model):
+    plt.figure()
     pca = PCA(n_components=2)
     X = pca.fit_transform(X)
 
