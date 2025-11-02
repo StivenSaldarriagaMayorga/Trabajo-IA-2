@@ -3,6 +3,7 @@ from knn import metricas_knn
 from desicion_tree import metricas_dt
 from svm import metricas_svm
 from red_neuronal import metricas_nn
+import matplotlib.pyplot as plt
 import textwrap
 
 
@@ -53,7 +54,26 @@ figura1 = generar_figura1()
 f1 = figura1.xs("f1", axis=1, level=1)
 f1.columns = ['\n'.join(textwrap.wrap(label, 15)) for label in f1.columns]
 
+plt.figure()
 plot_f1_max_por_algoritmo(f1)
+plt.tight_layout()
+plt.show()
+# plt.savefig("images/max-alg.png")
+
+plt.figure()
 plot_f1_medio_por_normalizacion_y_algoritmo(f1)
+plt.tight_layout()
+plt.show()
+# plt.savefig("images/medio-norm.png")
+
+plt.figure()
 plot_f1_medio_por_outliers_y_algoritmo(f1)
+plt.tight_layout()
+plt.show()
+# plt.savefig("images/medio-outliers.png")
+
+plt.figure()
 plot_f1_medio_por_balanceo_y_algoritmo(f1)
+plt.tight_layout()
+plt.show()
+# plt.savefig("images/medio-balanceo.png")
