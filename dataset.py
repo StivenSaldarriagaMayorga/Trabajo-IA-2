@@ -291,3 +291,25 @@ def generar_caso_de_prueba():
             result[col] = val
 
     return pd.DataFrame([result])
+
+
+def generar_resumen_pruebas(pruebas):
+    pruebas = pd.concat(pruebas)
+    pruebas.index = range(1, 4)
+    pruebas = pruebas.round(2).T
+    pruebas.index.name = "Prueba #"
+    return pruebas
+
+
+def probar_modelo(modelo, preprocesador):
+    pruebas = []
+    for i in range(3):
+        c = generar_caso_de_prueba()
+        cn = preprocesador.transform(c)
+        prediccion = modelo.predict(cn)
+        # prediccion = le.inverse_transform(prediccion)
+        c["Predicción"] = prediccion
+        pruebas.append(c)
+        print(f"> Caso de prueba {i+1}:", c)
+        print(">> Predicción:", prediccion)
+    return generar_resumen_pruebas(pruebas)

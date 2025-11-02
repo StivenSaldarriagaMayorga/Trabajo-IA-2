@@ -1,5 +1,5 @@
 from datetime import datetime
-from dataset import calcular_metricas, dataframes, generar_caso_de_prueba, le, preprocesadores
+from dataset import calcular_metricas, dataframes, le, preprocesadores, probar_modelo
 import numpy as np
 import pandas as pd
 from scipy.sparse import vstack
@@ -103,22 +103,9 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
     metricas = calcular_metricas(y_test, y_pred)
 
     # casos de prueba
-    casos = []
-    for i in range(3):
-        c = generar_caso_de_prueba()
-        cn = preprocesadores[idx].transform(c)
-        prediccion = modelo.predict(cn)
-        prediccion = le.inverse_transform(prediccion)
-        c["Predicción"] = prediccion
-        casos.append(c)
-        print(f"> Caso de prueba {i+1}:", c)
-        print(">> Predicción:", prediccion)
-    casos = pd.concat(casos)
-    casos.index = pd.Series(range(1, 4), name="Prueba #")
-    casos = casos.reset_index()
-    casos = casos.round(2)
-    print(casos.T)
-    # casos.T.to_csv(f"casos-svm/caso-{idx+1}.csv")
+    pruebas = probar_modelo(modelo, preprocesadores[idx])
+    print(pruebas)
+    # pruebas.to_csv(f"casos-svm/caso-{idx+1}.csv")
 
     # gráfico región de decisión
     X = np.concatenate((X_train, X_test))
