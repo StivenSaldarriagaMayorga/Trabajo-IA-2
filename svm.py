@@ -6,13 +6,9 @@ from scipy.sparse import vstack
 import matplotlib.pyplot as plt
 from sklearn.svm import SVC
 from sklearn.metrics import (
-    accuracy_score,
     auc,
     average_precision_score,
-    f1_score,
     precision_recall_curve,
-    precision_score,
-    recall_score,
     roc_curve,
 )
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
