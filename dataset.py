@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import tensorflow as tf
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
@@ -31,6 +32,7 @@ DATASET_NUM_COLS = [
 
 SEED = 852
 np.random.seed(SEED)
+tf.random.set_seed(SEED)
 
 
 def obtener_dataset() -> pd.DataFrame:
