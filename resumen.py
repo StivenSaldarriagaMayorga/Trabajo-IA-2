@@ -47,7 +47,7 @@ def plot_f1_medio_por_outliers_y_algoritmo(f1):
 def plot_f1_medio_por_balanceo_y_algoritmo(f1):
     balanceo_no = f1.iloc[[0, 2, 4, 6], :].mean()
     balanceo_si = f1.iloc[[1, 3, 5, 7], :].mean()
-    return pd.DataFrame({"Outliers (NO)": balanceo_no, "Outliers (SI)": balanceo_si}).plot.bar(rot=0, title="F1-score medio por balanceo y algoritmo", ylabel="F1-score")
+    return pd.DataFrame({"Balanceo (NO)": balanceo_no, "Balanceo (SI)": balanceo_si}).plot.bar(rot=0, title="F1-score medio por balanceo y algoritmo", ylabel="F1-score")
 
 
 figura1 = generar_figura1()
