@@ -235,22 +235,22 @@ for i in range(8):
 
 def generar_caso_de_prueba():
     distributions = {
-            "Administrative": "discrete",
-            "Administrative_Duration": "exponential",
-            "Informational": "discrete",
-            "Informational_Duration": "exponential",
-            "ProductRelated": "discrete",
-            "ProductRelated_Duration": "exponential",
-            "BounceRates": "exponential",
-            "ExitRates": "exponential",
-            "PageValues": "exponential",
-            "SpecialDay": "exponential",
-            "Month": "discrete",
-            "OperatingSystems": "discrete",
-            "Browser": "discrete",
-            "Region": "discrete",
-            "TrafficType": "discrete",
-            "Weekend": "discrete"
+        "Administrative": "discrete",
+        "Administrative_Duration": "exponential",
+        "Informational": "discrete",
+        "Informational_Duration": "exponential",
+        "ProductRelated": "discrete",
+        "ProductRelated_Duration": "exponential",
+        "BounceRates": "exponential",
+        "ExitRates": "exponential",
+        "PageValues": "exponential",
+        "SpecialDay": "exponential",
+        "Month": "discrete",
+        "OperatingSystems": "discrete",
+        "Browser": "discrete",
+        "Region": "discrete",
+        "TrafficType": "discrete",
+        "Weekend": "discrete"
     }
 
     result = {}
@@ -261,11 +261,33 @@ def generar_caso_de_prueba():
         values = vc.values
         total = values.sum()
 
+        # 2/3 de probabilidad de introducir ruido
+        apply_noise = np.random.random() < 2/3
+
         if dist == "discrete":
             probabilities = values / total
-            result[col] = np.random.choice(keys, p=probabilities)
+            choice = np.random.choice(keys, p=probabilities)
+
+            if apply_noise:
+                # desplazamiento aleatorio: escoger una categoría distinta si es posible
+                if len(keys) > 1 and np.random.random() < 0.5:
+                    alt_keys = [k for k in keys if k != choice]
+                    choice = np.random.choice(alt_keys)
+            result[col] = choice
+
         elif dist == "exponential":
             mean = df[col].mean()
-            result[col] = np.random.exponential(mean)
+            val = np.random.exponential(mean)
+
+            if apply_noise:
+                # agregar ruido gaussiano (positivos, pero más dispersos)
+                noise_factor = np.random.uniform(0.5, 1.5)
+                val *= noise_factor
+
+                # ocasionalmente, valores más extremos
+                if np.random.random() < 0.1:
+                    val *= np.random.uniform(1.5, 3)
+
+            result[col] = val
 
     return pd.DataFrame([result])
