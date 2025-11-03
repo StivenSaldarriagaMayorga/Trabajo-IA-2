@@ -13,6 +13,7 @@ imgs_dir.mkdir(parents=True)
 (resultados_dir / "imagenes" / "arboles_gini").mkdir(parents=True)
 (resultados_dir / "imagenes" / "caracteristicas_arbol").mkdir(parents=True)
 (resultados_dir / "imagenes" / "svm").mkdir(parents=True)
+(resultados_dir / "casos-de-prueba" / "svm").mkdir(parents=True)
 
 import pandas as pd
 from knn import metricas_knn
