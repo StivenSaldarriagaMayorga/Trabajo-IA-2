@@ -122,7 +122,7 @@ def make_column_transformer(*, use_scaler=False):
     return ColumnTransformer(transformers=transformers, remainder="passthrough")
 
 
-def preprocess(X_train, X_test, *, use_scaler):
+def preprocess(X_train, X_test=None, *, use_scaler):
     """
     Convierte variables categóricas en numéricas mediante OneHotEncoding. Si `use_scaler` es True,
     entonces también realiza escalado mediante StandardScaler de las variables numéricas.
@@ -130,7 +130,8 @@ def preprocess(X_train, X_test, *, use_scaler):
 
     transformer = make_column_transformer(use_scaler=use_scaler)
     X_train = transformer.fit_transform(X_train)
-    X_test = transformer.transform(X_test)
+    if X_test is not None:
+        X_test = transformer.transform(X_test)
     return X_train, X_test, transformer
 
 
@@ -232,6 +233,30 @@ for i in range(8):
     y_test = le.transform(y_test)
 
     dataframes.append((X_train, X_test, y_train, y_test))
+
+
+dataframes_no_supervisado = []
+preprocesadores_no_supervisado = []
+for i in range(8)
+    X, y = make_xy(df)
+
+    if i in {0, 1, 4, 5}:
+        X, y = sin_outliers_iqr(X, y)
+    else:
+        X, y = con_outliers_5(X, y)
+
+    use_scaler = i in {4, 5, 6, 7}
+    # preprocess se encarga tanto de convertir variables categóricas en numéricas como del
+    # escalado, dependiendo de si la columna es categórica o numérica. Se realiza la conversión de
+    # categóricas a numéricas con OneHotEncoding independiende del dataset, y se realiza escalado
+    # únicamente para los datasets 5, 6, 7 y 8
+    X_train, _, preprocesador = preprocess(X, use_scaler=use_scaler)
+    preprocesadores_no_supervisado.append(preprocesador)
+
+    if i in {1, 3, 5, 7}:
+        X, y = balancear_clases(X, y)
+
+    dataframes_no_supervisado.append(X)
 
 
 def generar_caso_de_prueba():
