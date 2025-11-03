@@ -51,7 +51,7 @@ def plot_decision_boundary(idx, titulo, X, y, model):
 
     dir = Path(f"resultados/imagenes/svm")
     if dir.exists():
-        plt.savefig(dir / "{idx + 1}-{titulo}.png")
+        plt.savefig(dir / f"{idx + 1}-{titulo}.png")
     plt.show()
 
 
