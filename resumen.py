@@ -2,8 +2,6 @@ import shutil
 import os
 from pathlib import Path
 
-import process_casos
-
 resultados_dir = Path("resultados")
 if resultados_dir.exists():
     shutil.rmtree("resultados")
@@ -13,7 +11,7 @@ imgs_dir.mkdir(parents=True)
 (resultados_dir / "imagenes" / "arboles_gini").mkdir(parents=True)
 (resultados_dir / "imagenes" / "caracteristicas_arbol").mkdir(parents=True)
 (resultados_dir / "imagenes" / "svm").mkdir(parents=True)
-(resultados_dir / "casos-de-prueba" / "svm").mkdir(parents=True)
+(resultados_dir / "casos-de-prueba").mkdir(parents=True)
 
 import pandas as pd
 from knn import metricas_knn
@@ -94,5 +92,3 @@ plot_f1_medio_por_balanceo_y_algoritmo(f1)
 plt.tight_layout()
 plt.savefig(imgs_dir / "medio-balanceo.png")
 plt.show()
-
-process_casos.process_casos("svm")

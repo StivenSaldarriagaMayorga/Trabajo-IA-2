@@ -2,7 +2,7 @@ from pathlib import Path
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.utils import class_weight
-from dataset import calcular_metricas, dataframes, le, preprocesadores, probar_modelo
+from dataset import calcular_metricas, dataframes, generar_resumen_pruebas, le, preprocesadores, probar_modelo
 import numpy as np
 import pandas as pd
 from scipy.sparse import vstack
@@ -118,9 +118,6 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
 
     # casos de prueba
     pruebas = probar_modelo(modelo, preprocesadores[idx])
-    dir = Path("resultados/casos-de-prueba/svm")
-    if dir.exists():
-        pruebas.to_csv(dir / f"caso-{idx+1}.csv")
 
     # gráfico región de decisión
     X = np.concatenate((X_train, X_test))
@@ -128,10 +125,10 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
     plot_decision_boundary(idx, titulo, X, y, modelo)
 
     # gráfico curvas roc y pr para el caso 8
-    if idx == 7:  # caso 8: curvas ROC y PR
-        plot_roc_pr(modelo, X_test, y_test)
+    # if idx == 7:  # caso 8: curvas ROC y PR
+    #     plot_roc_pr(modelo, X_test, y_test)
 
-    return metricas
+    return metricas, pruebas
 
 
 # buscar_hiperparametros()
@@ -147,13 +144,14 @@ hiperparametros = [
 ]
 
 metricas_svm = []
+pruebas_svm = []
 for idx in range(len(dataframes)):
     print(f"====== Caso {idx + 1} ======")
-    rbf_ovr = entrenar_y_evaluar(
+    metricas, pruebas = entrenar_y_evaluar(
         idx, "RBF OvR", OneVsRestClassifier, "rbf",
         **hiperparametros[idx]
     )
-    print("RBF OvR:", rbf_ovr)
+    print("RBF OvR:", metricas)
     # rbf_ovo = entrenar_y_evaluar(
     #     idx, "RBF OvO", OneVsOneClassifier, "rbf",
     #     **hiperparametros[idx]
@@ -170,4 +168,11 @@ for idx in range(len(dataframes)):
 
     # mejor = max((rbf_ovr, rbf_ovo, lineal_ovr, lineal_ovo), key=lambda x: x["f1"])
     # metricas_svm.append(mejor)
-    metricas_svm.append(rbf_ovr)
+    metricas_svm.append(metricas)
+    pruebas_svm.append(pruebas)
+
+pruebas_svm = generar_resumen_pruebas(pruebas_svm)
+print(pruebas_svm)
+resultados_dir = Path("resultados")
+if resultados_dir.exists():
+    pruebas_svm.to_csv(resultados_dir / "casos-de-prueba/svm.csv")
