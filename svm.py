@@ -49,9 +49,9 @@ def plot_decision_boundary(idx, titulo, X, y, model):
         handles=scatter.legend_elements()[0], labels=list(le.classes_), title="Clases"
     )
 
-    dir = Path(f"resultados/imagenes/svm/{idx + 1}-{titulo}.png")
+    dir = Path(f"resultados/imagenes/svm")
     if dir.exists():
-        plt.savefig(dir)
+        plt.savefig(dir / "{idx + 1}-{titulo}.png")
     plt.show()
 
 
@@ -118,9 +118,9 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
 
     # casos de prueba
     pruebas = probar_modelo(modelo, preprocesadores[idx])
-    dir = Path(f"resultados/casos-de-prueba/svm/caso-{idx+1}.csv")
+    dir = Path("resultados/casos-de-prueba/svm")
     if dir.exists():
-        pruebas.to_csv(dir)
+        pruebas.to_csv(dir / f"caso-{idx+1}.csv")
 
     # gráfico región de decisión
     X = np.concatenate((X_train, X_test))
