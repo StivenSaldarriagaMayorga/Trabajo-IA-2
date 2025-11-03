@@ -102,4 +102,4 @@ pruebas = {
 
 for k, v in pruebas.items():
     p = generar_resumen_pruebas(v)
-    p.to_csv(resultados_dir / f"{k}.csv")
+    p.to_csv(resultados_dir / f"casos-de-prueba/{k}.csv")
