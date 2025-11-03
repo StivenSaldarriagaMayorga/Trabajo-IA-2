@@ -1,3 +1,4 @@
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import tensorflow as tf
@@ -293,23 +294,37 @@ def generar_caso_de_prueba():
     return pd.DataFrame([result])
 
 
-def generar_resumen_pruebas(pruebas):
-    pruebas = pd.concat(pruebas)
-    pruebas.index = range(1, 4)
-    pruebas = pruebas.round(2).T
-    pruebas.index.name = "Prueba #"
-    return pruebas
+def generar_resumen_pruebas(pruebas: list[dict]):
+    assert len(pruebas) == 8
+    return pd.DataFrame(pruebas, index=pd.Series(range(1, 9), name="DataFrame"))
+
+
+casos_de_prueba = {
+    "A": generar_caso_de_prueba(),
+    "B": generar_caso_de_prueba(),
+    "C": generar_caso_de_prueba()
+}
+
+print("Casos de prueba:")
+for k, v in casos_de_prueba.items():
+    print(f"> {k}: {v}")
+
+# guardar casos de prueba
+resultados_dir = Path("resultados")
+if resultados_dir.exists():
+    casos = casos_de_prueba.items()
+    df_casos = pd.concat([x[1] for x in casos])
+    df_casos.index = pd.Series([x[0] for x in casos], name="Prueba")
+    df_casos = df_casos.round(4)
+    df_casos.T.to_csv(resultados_dir / "casos-de-prueba/casos.csv")
 
 
 def probar_modelo(modelo, preprocesador):
-    pruebas = []
-    for i in range(3):
-        c = generar_caso_de_prueba()
+    pruebas = {}
+    for prueba_key, c in casos_de_prueba.items():
         cn = preprocesador.transform(c)
         prediccion = modelo.predict(cn)
-        prediccion = le.inverse_transform(prediccion)
-        c["Predicción"] = prediccion
-        pruebas.append(c)
-        print(f"> Caso de prueba {i+1}:", c)
-        print(">> Predicción:", prediccion)
-    return generar_resumen_pruebas(pruebas)
+        prediccion = le.inverse_transform(prediccion)[0]
+        pruebas[prueba_key] = prediccion
+        print(f"> Predicción caso de prueba {prueba_key}:", prediccion)
+    return pruebas

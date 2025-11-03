@@ -1,3 +1,18 @@
+import shutil
+import os
+from pathlib import Path
+
+resultados_dir = Path("resultados")
+if resultados_dir.exists():
+    shutil.rmtree("resultados")
+
+imgs_dir = resultados_dir / "imagenes" / "evaluacion"
+imgs_dir.mkdir(parents=True)
+(resultados_dir / "imagenes" / "arboles_gini").mkdir(parents=True)
+(resultados_dir / "imagenes" / "caracteristicas_arbol").mkdir(parents=True)
+(resultados_dir / "imagenes" / "svm").mkdir(parents=True)
+(resultados_dir / "casos-de-prueba").mkdir(parents=True)
+
 import pandas as pd
 from knn import metricas_knn
 from desicion_tree import metricas_dt
@@ -23,7 +38,7 @@ def generar_figura1():
     figura1 = pd.concat(dfs, axis=1)
     figura1 = figura1.round(2)
     figura1.index = range(1, 9)
-    # figura1.to_csv("figura1.csv")
+    figura1.to_csv(resultados_dir / "figura1.csv")
 
     return figura1
 
@@ -57,23 +72,23 @@ f1.columns = ['\n'.join(textwrap.wrap(label, 15)) for label in f1.columns]
 plt.figure()
 plot_f1_max_por_algoritmo(f1)
 plt.tight_layout()
+plt.savefig(imgs_dir / "max-alg.png")
 plt.show()
-# plt.savefig("images/max-alg.png")
 
 plt.figure()
 plot_f1_medio_por_normalizacion_y_algoritmo(f1)
 plt.tight_layout()
+plt.savefig(imgs_dir / "medio-norm.png")
 plt.show()
-# plt.savefig("images/medio-norm.png")
 
 plt.figure()
 plot_f1_medio_por_outliers_y_algoritmo(f1)
 plt.tight_layout()
+plt.savefig(imgs_dir / "medio-outliers.png")
 plt.show()
-# plt.savefig("images/medio-outliers.png")
 
 plt.figure()
 plot_f1_medio_por_balanceo_y_algoritmo(f1)
 plt.tight_layout()
+plt.savefig(imgs_dir / "medio-balanceo.png")
 plt.show()
-# plt.savefig("images/medio-balanceo.png")

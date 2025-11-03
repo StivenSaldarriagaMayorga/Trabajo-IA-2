@@ -1,5 +1,8 @@
-from datetime import datetime
-from dataset import calcular_metricas, dataframes, le, preprocesadores, probar_modelo
+from pathlib import Path
+
+from sklearn.model_selection import GridSearchCV
+from sklearn.utils import class_weight
+from dataset import calcular_metricas, dataframes, generar_resumen_pruebas, le, preprocesadores, probar_modelo
 import numpy as np
 import pandas as pd
 from scipy.sparse import vstack
@@ -46,7 +49,9 @@ def plot_decision_boundary(idx, titulo, X, y, model):
         handles=scatter.legend_elements()[0], labels=list(le.classes_), title="Clases"
     )
 
-    # plt.savefig(f"images/{idx + 1}-{titulo}.png")
+    dir = Path(f"resultados/imagenes/svm")
+    if dir.exists():
+        plt.savefig(dir / f"{idx + 1}-{titulo}.png")
     plt.show()
 
 
@@ -90,6 +95,19 @@ def plot_roc_pr(modelo, X_test, y_test):
     plt.show()
 
 
+def buscar_hiperparametros():
+    for idx in range(len(dataframes)):
+        print(f"====== Caso {idx + 1} ======")
+        param_grid = {
+          'estimator__C': [0.01, 0.1, 1, 10, 100],
+          'estimator__gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1],
+        }
+        grid = GridSearchCV(OneVsRestClassifier(SVC(kernel="rbf")), param_grid, scoring='f1_macro', cv=5, n_jobs=-1)
+        X_train, _, y_train, _ = dataframes[idx]
+        grid.fit(X_train, y_train)
+        print(grid.best_params_, grid.best_score_)
+
+
 def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
     X_train, X_test, y_train, y_test = dataframes[idx]
     modelo = classifier(SVC(kernel=kernel, C=C, probability=idx == 7, **kwargs))
@@ -100,8 +118,6 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
 
     # casos de prueba
     pruebas = probar_modelo(modelo, preprocesadores[idx])
-    print(pruebas)
-    # pruebas.to_csv(f"casos-svm/caso-{idx+1}.csv")
 
     # gráfico región de decisión
     X = np.concatenate((X_train, X_test))
@@ -109,21 +125,36 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
     plot_decision_boundary(idx, titulo, X, y, modelo)
 
     # gráfico curvas roc y pr para el caso 8
-    if idx == 7:  # caso 8: curvas ROC y PR
-        plot_roc_pr(modelo, X_test, y_test)
+    # if idx == 7:  # caso 8: curvas ROC y PR
+    #     plot_roc_pr(modelo, X_test, y_test)
 
-    return metricas
+    return metricas, pruebas
 
+
+# buscar_hiperparametros()
+hiperparametros = [
+    {'C': 10, 'gamma': 0.001},
+    {'C': 100, 'gamma': 0.01},
+    {'C': 1, 'gamma': 1},
+    {'C': 100, 'gamma': 0.001},
+    {'C': 10, 'gamma': 'scale'},
+    {'C': 10, 'gamma': 1},
+    {'C': 100, 'gamma': 1},
+    {'C': 100, 'gamma': 1}
+]
 
 metricas_svm = []
-for idx, datos in enumerate(dataframes):
+pruebas_svm = []
+for idx in range(len(dataframes)):
     print(f"====== Caso {idx + 1} ======")
-    rbf_ovr = entrenar_y_evaluar(
-        idx, "RBF OvR", OneVsRestClassifier, "rbf", C=1.0, gamma="auto"
+    metricas, pruebas = entrenar_y_evaluar(
+        idx, "RBF OvR", OneVsRestClassifier, "rbf",
+        **hiperparametros[idx]
     )
-    print("RBF OvR:", rbf_ovr)
+    print("RBF OvR:", metricas)
     # rbf_ovo = entrenar_y_evaluar(
-    #     idx, "RBF OvO", OneVsOneClassifier, "rbf", C=1.0, gamma="auto"
+    #     idx, "RBF OvO", OneVsOneClassifier, "rbf",
+    #     **hiperparametros[idx]
     # )
     # print("RBF OvO:", rbf_ovo)
     # lineal_ovr = entrenar_y_evaluar(
@@ -137,4 +168,11 @@ for idx, datos in enumerate(dataframes):
 
     # mejor = max((rbf_ovr, rbf_ovo, lineal_ovr, lineal_ovo), key=lambda x: x["f1"])
     # metricas_svm.append(mejor)
-    metricas_svm.append(rbf_ovr)
+    metricas_svm.append(metricas)
+    pruebas_svm.append(pruebas)
+
+pruebas_svm = generar_resumen_pruebas(pruebas_svm)
+print(pruebas_svm)
+resultados_dir = Path("resultados")
+if resultados_dir.exists():
+    pruebas_svm.to_csv(resultados_dir / "casos-de-prueba/svm.csv")
