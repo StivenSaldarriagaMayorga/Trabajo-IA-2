@@ -237,7 +237,7 @@ for i in range(8):
 
 dataframes_no_supervisado = []
 preprocesadores_no_supervisado = []
-for i in range(8)
+for i in range(8):
     X, y = make_xy(df)
 
     if i in {0, 1, 4, 5}:
