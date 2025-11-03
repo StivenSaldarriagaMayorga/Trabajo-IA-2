@@ -250,7 +250,7 @@ for i in range(8)
     # escalado, dependiendo de si la columna es categórica o numérica. Se realiza la conversión de
     # categóricas a numéricas con OneHotEncoding independiende del dataset, y se realiza escalado
     # únicamente para los datasets 5, 6, 7 y 8
-    X_train, _, preprocesador = preprocess(X, use_scaler=use_scaler)
+    X, _, preprocesador = preprocess(X, use_scaler=use_scaler)
     preprocesadores_no_supervisado.append(preprocesador)
 
     if i in {1, 3, 5, 7}:
