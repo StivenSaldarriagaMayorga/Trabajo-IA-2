@@ -2,6 +2,8 @@ import shutil
 import os
 from pathlib import Path
 
+from dataset import generar_resumen_pruebas
+
 resultados_dir = Path("resultados")
 if resultados_dir.exists():
     shutil.rmtree("resultados")
@@ -15,8 +17,8 @@ imgs_dir.mkdir(parents=True)
 
 import pandas as pd
 from knn import metricas_knn
-from desicion_tree import metricas_dt
-from svm import metricas_svm
+from desicion_tree import metricas_dt, pruebas_dt
+from svm import metricas_svm, pruebas_svm
 from red_neuronal import metricas_nn
 import matplotlib.pyplot as plt
 import textwrap
@@ -92,3 +94,12 @@ plot_f1_medio_por_balanceo_y_algoritmo(f1)
 plt.tight_layout()
 plt.savefig(imgs_dir / "medio-balanceo.png")
 plt.show()
+
+pruebas = {
+    "svm": pruebas_svm,
+    "trees": pruebas_dt
+}
+
+for k, v in pruebas.items():
+    p = generar_resumen_pruebas(v)
+    p.to_csv(resultados_dir / f"{k}.csv")

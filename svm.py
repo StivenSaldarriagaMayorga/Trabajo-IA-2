@@ -170,9 +170,3 @@ for idx in range(len(dataframes)):
     # metricas_svm.append(mejor)
     metricas_svm.append(metricas)
     pruebas_svm.append(pruebas)
-
-pruebas_svm = generar_resumen_pruebas(pruebas_svm)
-print(pruebas_svm)
-resultados_dir = Path("resultados")
-if resultados_dir.exists():
-    pruebas_svm.to_csv(resultados_dir / "casos-de-prueba/svm.csv")

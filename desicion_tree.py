@@ -119,25 +119,6 @@ def importancias_caracteristicas(model, feature_names):
 
 
 # ===================== #
-#   GUARDAR RESULTADOS  #
-# ===================== #
-
-def guardar_pruebas(i, model):
-    """Ejecuta las pruebas y guarda los resultados en CSV."""
-    pruebas = probar_modelo(model, preprocesadores[i])
-
-    folder_path = "casos-trees"
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-
-    file_path = os.path.join(folder_path, f"caso-{i + 1}.csv")
-    pruebas.to_csv(file_path)
-    print(pruebas)
-
-    return pruebas
-
-
-# ===================== #
 #   PROCESO PRINCIPAL   #
 # ===================== #
 
@@ -155,14 +136,16 @@ def Decision_Tree(i, dfcase, *, max_depth=5, random_state=None):
     #graficar_arbol(model, feature_names)
     importancias_caracteristicas(model, feature_names)
 
-    guardar_pruebas(i, model)
-    return calcular_metricas(y_test, y_pred)
+    pruebas = probar_modelo(model, preprocesadores[i])
+    return calcular_metricas(y_test, y_pred), pruebas
 
 
 
 """Ejecuta el modelo para todos los casos disponibles."""
+metricas_dt = []
+pruebas_dt = []
 for i, dfcase in enumerate(dataframes):
     print(f"\n===== CASO {i} =====")
-    Decision_Tree(i, dfcase, max_depth=5, random_state=seed)
-
-
+    metricas, pruebas = Decision_Tree(i, dfcase, max_depth=5, random_state=seed)
+    metricas_dt.append(metricas)
+    pruebas_dt.append(pruebas)
