@@ -1,4 +1,4 @@
-from datetime import datetime
+from pathlib import Path
 
 from sklearn.model_selection import GridSearchCV
 from sklearn.utils import class_weight
@@ -49,7 +49,9 @@ def plot_decision_boundary(idx, titulo, X, y, model):
         handles=scatter.legend_elements()[0], labels=list(le.classes_), title="Clases"
     )
 
-    # plt.savefig(f"images/{idx + 1}-{titulo}.png")
+    dir = Path(f"resultados/imagenes/svm/{idx + 1}-{titulo}.png")
+    if dir.exists():
+        plt.savefig(dir)
     plt.show()
 
 
@@ -116,8 +118,9 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
 
     # casos de prueba
     pruebas = probar_modelo(modelo, preprocesadores[idx])
-    print(pruebas)
-    # pruebas.to_csv(f"casos-svm/caso-{idx+1}.csv")
+    dir = Path(f"resultados/casos-de-prueba/svm/caso-{idx+1}.csv")
+    if dir.exists():
+        pruebas.to_csv(dir)
 
     # gráfico región de decisión
     X = np.concatenate((X_train, X_test))
