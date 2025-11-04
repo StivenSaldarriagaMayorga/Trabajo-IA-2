@@ -1,57 +1,91 @@
 from dataset import calcular_metricas, dataframes
-from sklearn.neighbors import KNeighborsClassifier
-import pandas as pd
+
+import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-import numpy as np
+from sklearn.preprocessing import LabelEncoder, RobustScaler
+from sklearn.neighbors import KNeighborsClassifier
 
 
-# Función para graficar regiones de decisión de KNN usando PCA
-def plot_decision_boundary_knn(idx, X, y, model, le=None):
-    """
-    Genera un gráfico 2D de las regiones de decisión del modelo KNN
-    proyectando los datos con PCA a 2 componentes.
-    """
-    plt.figure()
-    pca = PCA(n_components=2)
-    X_pca = pca.fit_transform(X)
+def plot_knn_regions_pca2d(
+    i, X_train, X_test, y_train, y_test, k=3, subsample=1200, p_lo=5, p_hi=95
+):
 
-    # Crear una malla 2D sobre el espacio proyectado
-    x_min, x_max = X_pca[:, 0].min() - 1, X_pca[:, 0].max() + 1
-    y_min, y_max = X_pca[:, 1].min() - 1, X_pca[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 300), np.linspace(y_min, y_max, 300))
+    scaler = RobustScaler().fit(X_train)
+    Xtr_s = scaler.transform(X_train)
+    Xte_s = scaler.transform(X_test)
 
-    # Cada punto de la malla está en 2D (PCA1, PCA2)
-    # Lo llevamos de vuelta al espacio original
-    grid_points = np.c_[xx.ravel(), yy.ravel()]
-    grid_points_original = pca.inverse_transform(grid_points)
+    pca = PCA(n_components=2, whiten=True, random_state=0).fit(Xtr_s)
+    Xtr_2d = pca.transform(Xtr_s)
+    Xte_2d = pca.transform(Xte_s)
 
-    # Predicciones del modelo sobre la malla
-    Z = model.predict(grid_points_original)
-    Z = Z.reshape(xx.shape)
+    all_classes = np.unique(np.concatenate([y_train, y_test]))
+    le = LabelEncoder().fit(all_classes)
+    ytr_enc = le.transform(y_train)
+    yte_enc = le.transform(y_test)
+    n_classes = len(le.classes_)
 
-    # Fondo coloreado (regiones)
-    plt.contourf(xx, yy, Z, alpha=0.3, cmap=plt.cm.RdYlBu)
+    knn_2d = KNeighborsClassifier(n_neighbors=k, weights="distance")
+    knn_2d.fit(Xtr_2d, ytr_enc)
 
-    # Puntos originales en espacio PCA
-    scatter = plt.scatter(
-        X_pca[:, 0], X_pca[:, 1], c=y, cmap=plt.cm.RdYlBu, edgecolors="k", s=30
+    Xall_2d = np.vstack([Xtr_2d, Xte_2d])
+    x_min, x_max = np.percentile(Xall_2d[:, 0], [p_lo, p_hi])
+    y_min, y_max = np.percentile(Xall_2d[:, 1], [p_lo, p_hi])
+    padx = 0.08 * (x_max - x_min)
+    pady = 0.08 * (y_max - y_min)
+    x_min, x_max = x_min - padx, x_max + padx
+    y_min, y_max = y_min - pady, y_max + pady
+
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 500), np.linspace(y_min, y_max, 500))
+    Z = knn_2d.predict(np.c_[xx.ravel(), yy.ravel()]).reshape(xx.shape)
+
+    plt.figure(figsize=(10, 7))
+    cmap = plt.cm.RdYlBu
+    levels = np.arange(-0.5, n_classes + 0.5, 1.0)
+
+    plt.contourf(xx, yy, Z, levels=levels, alpha=0.30, cmap=cmap)
+    plt.contour(xx, yy, Z, levels=levels, colors="k", linewidths=0.6, alpha=0.7)
+
+    rng = np.random.default_rng(0)
+    idx_tr = rng.choice(len(Xtr_2d), size=min(subsample, len(Xtr_2d)), replace=False)
+    idx_te = rng.choice(
+        len(Xte_2d), size=min(subsample // 3, len(Xte_2d)), replace=False
+    )
+    sc_tr = plt.scatter(
+        Xtr_2d[idx_tr, 0],
+        Xtr_2d[idx_tr, 1],
+        c=ytr_enc[idx_tr],
+        cmap=cmap,
+        edgecolors="k",
+        s=20,
+        alpha=0.9,
+    )
+    plt.scatter(
+        Xte_2d[idx_te, 0],
+        Xte_2d[idx_te, 1],
+        c=yte_enc[idx_te],
+        cmap=cmap,
+        edgecolors="k",
+        s=35,
+        alpha=0.95,
+        marker="o",
     )
 
-    plt.xlabel("PCA 1")
-    plt.ylabel("PCA 2")
-    plt.title(f"Regiones de decisión KNN: Caso {idx}")
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
 
-    # Leyenda con etiquetas de clase
-    if le is not None:
-        labels = list(le.classes_)
-    else:
-        labels = [str(cls) for cls in np.unique(y)]
-
+    handles, _ = sc_tr.legend_elements()
     plt.legend(
-        handles=scatter.legend_elements()[0], labels=labels, title="Clases", loc="best"
+        handles, list(le.classes_), title="Clases", loc="lower right", framealpha=0.95
     )
-    plt.grid(True)
+
+    plt.title(
+        f"Regiones de Decisión KNN (k={k}) – Caso {i} (PCA 2D robusto)", fontsize=14
+    )
+    plt.xlabel("Componente Principal 1")
+    plt.ylabel("Componente Principal 2")
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
     plt.show()
 
 
@@ -69,5 +103,4 @@ for i, (X_train, X_test, y_train, y_test) in enumerate(dataframes, start=1):
     print(metricas)
     metricas_knn.append(metricas)
 
-    plot_decision_boundary_knn(i, X_train, y_train, knn)
-
+    plot_knn_regions_pca2d(i, X_train, X_test, y_train, y_test, k=5)
