@@ -83,10 +83,10 @@ def Red_Neuronal(idx_dataframe, dataframe):
     print(metricas)
     print("-"*50)
 
-    pruebas = probar_modelo(model, preprocesadores[idx_dataframe])
+    pruebas = probar_modelo(model, preprocesadores[idx_dataframe], salida_softmax=True)
 
     if i == 7:
-        calcular_datos_curvas_caso8(datos_curvas_caso8_nn, model, X_test, y_test)
+        calcular_datos_curvas_caso8(datos_curvas_caso8_nn, model, X_test, y_test, predict_en_lugar_de_predictproba=True)
 
     return metricas, pruebas
 

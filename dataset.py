@@ -345,25 +345,33 @@ if resultados_dir.exists():
     df_casos.T.to_csv(resultados_dir / "casos-de-prueba/casos.csv")
 
 
-def probar_modelo(modelo, preprocesador):
+def probar_modelo(modelo, preprocesador, *, salida_softmax=False):
     pruebas = {}
     for prueba_key, c in casos_de_prueba.items():
         cn = preprocesador.transform(c)
         prediccion = modelo.predict(cn)
+        if salida_softmax:
+            # si la salida se hace con función de activación softmax,
+            # entonces escoger el mayor porcentage de pertenencia
+            prediccion = np.argmax(prediccion, axis=1)
         prediccion = le.inverse_transform(prediccion)[0]
         pruebas[prueba_key] = prediccion
         print(f"> Predicción caso de prueba {prueba_key}:", prediccion)
     return pruebas
 
 
-def calcular_datos_curvas_caso8(datos_dict, modelo, X_test, y_test):
-    n_classes = len(list(le.classes_))-1
+def calcular_datos_curvas_caso8(datos_dict, modelo, X_test, y_test, *, predict_en_lugar_de_predictproba=False):
+    n_classes = len(list(le.classes_))-(1-int(predict_en_lugar_de_predictproba))
 
     # Binarizar etiquetas (necesario para curvas ROC/PR multiclase)
     y_test_bin = label_binarize(y_test, classes=range(n_classes))
 
     # Predicciones probabilísticas
-    y_score = modelo.predict_proba(X_test)
+    y_score = None
+    if predict_en_lugar_de_predictproba:
+        y_score = modelo.predict(X_test)
+    else:
+        y_score = modelo.predict_proba(X_test)
 
     # Curva ROC (micro)
     fpr, tpr, _ = roc_curve(y_test_bin.ravel(), y_score.ravel())
