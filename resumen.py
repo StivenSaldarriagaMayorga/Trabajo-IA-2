@@ -1,5 +1,4 @@
 import shutil
-import os
 from pathlib import Path
 
 from dataset import generar_resumen_pruebas
@@ -16,9 +15,9 @@ imgs_dir.mkdir(parents=True)
 (resultados_dir / "casos-de-prueba").mkdir(parents=True)
 
 import pandas as pd
-from knn import metricas_knn
-from desicion_tree import metricas_dt, pruebas_dt
-from svm import metricas_svm, pruebas_svm
+from knn import metricas_knn, pruebas_knn, datos_curvas_caso8_knn
+from desicion_tree import metricas_dt, pruebas_dt, datos_curvas_caso8_dt
+from svm import metricas_svm, pruebas_svm, datos_curvas_caso8_svm
 from red_neuronal import metricas_nn
 import matplotlib.pyplot as plt
 import textwrap
@@ -67,6 +66,42 @@ def plot_f1_medio_por_balanceo_y_algoritmo(f1):
     return pd.DataFrame({"Balanceo (NO)": balanceo_no, "Balanceo (SI)": balanceo_si}).plot.bar(rot=0, title="F1-score medio por balanceo y algoritmo", ylabel="F1-score")
 
 
+def plot_roc_pr(datos_curvas_caso8_svm: dict[str, dict]):
+    colors = {
+        "SVM": "tab:blue",
+        "Árboles de decisión": "tab:orange",
+        "Red neuronal": "tab:green",
+        "KNN": "tab:red"
+    }
+
+    # Curva ROC (micro)
+    plt.figure()
+    for modelo, datos in datos_curvas_caso8_svm.items():
+        plt.plot(datos["fpr"], datos["tpr"], color=colors[modelo], lw=2, label=f'{modelo} (AUC = {datos["roc_auc"]:.2f})')
+    plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
+    plt.xlabel('Tasa de Falsos Positivos (FPR)')
+    plt.ylabel('Tasa de Verdaderos Positivos (TPR)')
+    plt.title('Curva ROC Micro')
+    plt.legend()
+    if imgs_dir.exists():
+        plt.savefig(imgs_dir / f"roc-caso8.png")
+    plt.show()
+
+    # Curva Precision-Recall (micro)
+    plt.figure()
+    for modelo, datos in datos_curvas_caso8_svm.items():
+        plt.plot(datos["recall"], datos["precision"], color=colors[modelo], lw=2,
+                 label=f'{modelo} (AP = {datos["avg_precision"]:.2f})')
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Curva Precision-Recall Micro')
+    plt.legend()
+    if imgs_dir.exists():
+        plt.savefig(imgs_dir / "pr-caso8.png")
+    plt.show()
+
+
+
 figura1 = generar_figura1()
 f1 = figura1.xs("f1", axis=1, level=1)
 f1.columns = ['\n'.join(textwrap.wrap(label, 15)) for label in f1.columns]
@@ -95,9 +130,16 @@ plt.tight_layout()
 plt.savefig(imgs_dir / "medio-balanceo.png")
 plt.show()
 
+plot_roc_pr({
+    "SVM": datos_curvas_caso8_svm,
+    "Árboles de decisión": datos_curvas_caso8_dt,
+    "KNN": datos_curvas_caso8_knn
+})
+
 pruebas = {
     "svm": pruebas_svm,
-    "trees": pruebas_dt
+    "trees": pruebas_dt,
+    "knn": pruebas_knn
 }
 
 for k, v in pruebas.items():

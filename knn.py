@@ -1,4 +1,4 @@
-from dataset import calcular_metricas, dataframes
+from dataset import calcular_datos_curvas_caso8, calcular_metricas, dataframes, probar_modelo, preprocesadores
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -90,6 +90,8 @@ def plot_knn_regions_pca2d(
 
 
 metricas_knn = []
+pruebas_knn = []
+datos_curvas_caso8_knn = {}
 
 for i, (X_train, X_test, y_train, y_test) in enumerate(dataframes, start=1):
     print(f"\n===== Caso {i} =====")
@@ -103,4 +105,10 @@ for i, (X_train, X_test, y_train, y_test) in enumerate(dataframes, start=1):
     print(metricas)
     metricas_knn.append(metricas)
 
+    pruebas = probar_modelo(knn, preprocesadores[i-1])
+    pruebas_knn.append(pruebas)
+
     plot_knn_regions_pca2d(i, X_train, X_test, y_train, y_test, k=5)
+
+    if i == 8:
+        calcular_datos_curvas_caso8(datos_curvas_caso8_knn, knn, X_test, y_test)

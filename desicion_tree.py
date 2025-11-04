@@ -1,4 +1,4 @@
-from dataset import calcular_metricas, dataframes, SEED as seed, le, probar_modelo, preprocesadores
+from dataset import calcular_datos_curvas_caso8, calcular_metricas, dataframes, SEED as seed, le, probar_modelo, preprocesadores
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -122,6 +122,7 @@ def importancias_caracteristicas(model, feature_names):
 #   PROCESO PRINCIPAL   #
 # ===================== #
 
+datos_curvas_caso8_dt = {}
 def Decision_Tree(i, dfcase, *, max_depth=5, random_state=None):
     """Pipeline completo del árbol de decisión."""
     if random_state is None:
@@ -137,7 +138,12 @@ def Decision_Tree(i, dfcase, *, max_depth=5, random_state=None):
     importancias_caracteristicas(model, feature_names)
 
     pruebas = probar_modelo(model, preprocesadores[i])
-    return calcular_metricas(y_test, y_pred), pruebas
+    metricas = calcular_metricas(y_test, y_pred)
+
+    if i == 7:
+        calcular_datos_curvas_caso8(datos_curvas_caso8_dt, model, X_test, y_test)
+
+    return metricas, pruebas
 
 
 

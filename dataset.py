@@ -1,8 +1,9 @@
 from pathlib import Path
+from imblearn.base import label_binarize
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, auc, average_precision_score, f1_score, precision_recall_curve, precision_score, recall_score, roc_curve
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
@@ -353,3 +354,28 @@ def probar_modelo(modelo, preprocesador):
         pruebas[prueba_key] = prediccion
         print(f"> Predicción caso de prueba {prueba_key}:", prediccion)
     return pruebas
+
+
+def calcular_datos_curvas_caso8(datos_dict, modelo, X_test, y_test):
+    n_classes = len(list(le.classes_))-1
+
+    # Binarizar etiquetas (necesario para curvas ROC/PR multiclase)
+    y_test_bin = label_binarize(y_test, classes=range(n_classes))
+
+    # Predicciones probabilísticas
+    y_score = modelo.predict_proba(X_test)
+
+    # Curva ROC (micro)
+    fpr, tpr, _ = roc_curve(y_test_bin.ravel(), y_score.ravel())
+    roc_auc = auc(fpr, tpr)
+
+    # Curva Precision-Recall (micro)
+    precision, recall, _ = precision_recall_curve(y_test_bin.ravel(), y_score.ravel())
+    avg_precision = average_precision_score(y_test_bin, y_score, average="micro")
+
+    datos_dict["fpr"] = fpr
+    datos_dict["tpr"] = tpr
+    datos_dict["roc_auc"] = roc_auc
+    datos_dict["precision"] = precision
+    datos_dict["recall"] = recall
+    datos_dict["avg_precision"] = avg_precision

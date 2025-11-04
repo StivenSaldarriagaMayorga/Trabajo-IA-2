@@ -1,21 +1,11 @@
 from pathlib import Path
 
 from sklearn.model_selection import GridSearchCV
-from sklearn.preprocessing import label_binarize
-from sklearn.utils import class_weight
-from dataset import calcular_metricas, dataframes, generar_resumen_pruebas, le, preprocesadores, probar_modelo
+from dataset import calcular_datos_curvas_caso8, calcular_metricas, dataframes, le, preprocesadores, probar_modelo
 import numpy as np
-import pandas as pd
-from scipy.sparse import vstack
 import matplotlib.pyplot as plt
 from sklearn.svm import SVC
-from sklearn.metrics import (
-    auc,
-    average_precision_score,
-    precision_recall_curve,
-    roc_curve,
-)
-from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.decomposition import PCA
 
 
@@ -39,7 +29,6 @@ def plot_decision_boundary(idx, titulo, X, y, model):
     grid_points_original = pca.inverse_transform(grid_points)
 
     Z = model.predict(grid_points_original)
-    # Z = le.transform(Z)
     Z = Z.reshape(xx.shape)
 
     plt.contourf(xx, yy, Z, vmin=y.min(), vmax=y.max(), alpha=0.8, cmap=plt.cm.RdYlBu)
@@ -58,45 +47,6 @@ def plot_decision_boundary(idx, titulo, X, y, model):
     plt.show()
 
 
-def plot_roc_pr(modelo, X_test, y_test):
-    n_classes = len(list(le.classes_))-1
-
-    # Binarizar etiquetas (necesario para curvas ROC/PR multiclase)
-    y_test_bin = label_binarize(y_test, classes=range(n_classes))
-
-    # Predicciones probabilísticas
-    y_score = modelo.predict_proba(X_test)
-
-    # Curva ROC (micro)
-    fpr, tpr, _ = roc_curve(y_test_bin.ravel(), y_score.ravel())
-    roc_auc = auc(fpr, tpr)
-
-    plt.figure()
-    plt.plot(fpr, tpr, color='blue', lw=2, label=f'ROC micro (AUC = {roc_auc:.2f})')
-    plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
-    plt.xlabel('Tasa de Falsos Positivos (FPR)')
-    plt.ylabel('Tasa de Verdaderos Positivos (TPR)')
-    plt.title('Curva ROC Micro')
-    plt.legend()
-    if imgs_dir.exists():
-        plt.savefig(imgs_dir / f"roc-caso8.png")
-    plt.show()
-
-    # Curva Precision-Recall (micro)
-    precision, recall, _ = precision_recall_curve(y_test_bin.ravel(), y_score.ravel())
-    avg_precision = average_precision_score(y_test_bin, y_score, average="micro")
-
-    plt.figure()
-    plt.plot(recall, precision, color='green', lw=2,
-             label=f'Precision-Recall micro (AP = {avg_precision:.2f})')
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.title('Curva Precision-Recall Micro')
-    plt.legend()
-    if imgs_dir.exists():
-        plt.savefig("pr-caso8.png")
-    plt.show()
-
 def buscar_hiperparametros():
     for idx in range(len(dataframes)):
         print(f"====== Caso {idx + 1} ======")
@@ -110,6 +60,7 @@ def buscar_hiperparametros():
         print(grid.best_params_, grid.best_score_)
 
 
+datos_curvas_caso8_svm = {}
 def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
     X_train, X_test, y_train, y_test = dataframes[idx]
     modelo = classifier(SVC(kernel=kernel, C=C, probability=idx == 7, **kwargs))
@@ -128,7 +79,7 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
 
     # gráfico curvas roc y pr para el caso 8
     if idx == 7:  # caso 8: curvas ROC y PR
-        plot_roc_pr(modelo, X_test, y_test)
+        calcular_datos_curvas_caso8(datos_curvas_caso8_svm, modelo, X_test, y_test)
 
     return metricas, pruebas
 
@@ -151,7 +102,7 @@ for idx in range(len(dataframes)):
     print(f"====== Caso {idx + 1} ======")
     metricas, pruebas = entrenar_y_evaluar(
         idx, "RBF OvR", OneVsRestClassifier, "rbf",
-        **hiperparametros[idx]
+        **hiperparametros[idx],
     )
     print("RBF OvR:", metricas)
     # rbf_ovo = entrenar_y_evaluar(
