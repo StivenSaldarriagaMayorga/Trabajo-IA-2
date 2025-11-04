@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import label_binarize
 from sklearn.utils import class_weight
 from dataset import calcular_metricas, dataframes, generar_resumen_pruebas, le, preprocesadores, probar_modelo
 import numpy as np
@@ -16,6 +17,9 @@ from sklearn.metrics import (
 )
 from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
 from sklearn.decomposition import PCA
+
+
+imgs_dir = Path(f"resultados/imagenes/svm")
 
 
 # Función para plotear los límites de decisión
@@ -49,51 +53,49 @@ def plot_decision_boundary(idx, titulo, X, y, model):
         handles=scatter.legend_elements()[0], labels=list(le.classes_), title="Clases"
     )
 
-    dir = Path(f"resultados/imagenes/svm")
-    if dir.exists():
-        plt.savefig(dir / f"{idx + 1}-{titulo}.png")
+    if imgs_dir.exists():
+        plt.savefig(imgs_dir / f"{idx + 1}-{titulo}.png")
     plt.show()
 
 
 def plot_roc_pr(modelo, X_test, y_test):
-    # Predecir probabilidades
-    y_scores = modelo.predict_proba(X_test)[:, 1]
+    n_classes = len(list(le.classes_))-1
 
-    # Calcular curvas
-    precision, recall, _ = precision_recall_curve(y_test, y_scores)
-    fpr, tpr, _ = roc_curve(y_test, y_scores)
+    # Binarizar etiquetas (necesario para curvas ROC/PR multiclase)
+    y_test_bin = label_binarize(y_test, classes=range(n_classes))
 
-    # Calcular áreas bajo la curva
+    # Predicciones probabilísticas
+    y_score = modelo.predict_proba(X_test)
+
+    # Curva ROC (micro)
+    fpr, tpr, _ = roc_curve(y_test_bin.ravel(), y_score.ravel())
     roc_auc = auc(fpr, tpr)
-    pr_auc = average_precision_score(y_test, y_scores)
 
-    print(f"roc_auc:  {roc_auc:.2f}")
-    print(f"pr_auc:  {pr_auc:.2f}")
-
-    plt.figure(figsize=(12, 5))
-
-    # Curva Precisión vs Recall
-    plt.subplot(1, 2, 1)
-    plt.plot(recall, precision, label=f"AP = {pr_auc:.2f}")
-    plt.xlabel("Recall")
-    plt.ylabel("Precision")
-    plt.title("Curva Precision vs Recall")
-    plt.grid(True)
+    plt.figure()
+    plt.plot(fpr, tpr, color='blue', lw=2, label=f'ROC micro (AUC = {roc_auc:.2f})')
+    plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
+    plt.xlabel('Tasa de Falsos Positivos (FPR)')
+    plt.ylabel('Tasa de Verdaderos Positivos (TPR)')
+    plt.title('Curva ROC Micro')
     plt.legend()
-
-    # Curva ROC
-    plt.subplot(1, 2, 2)
-    plt.plot(fpr, tpr, label=f"AUC = {roc_auc:.2f}")
-    plt.plot([0, 1], [0, 1], "k--")  # Línea diagonal
-    plt.xlabel("FPR (1 - Specificity)")
-    plt.ylabel("TPR (Recall)")
-    plt.title("Curva ROC")
-    plt.grid(True)
-    plt.legend()
-
-    plt.tight_layout()
+    if imgs_dir.exists():
+        plt.savefig(imgs_dir / f"roc-caso8.png")
     plt.show()
 
+    # Curva Precision-Recall (micro)
+    precision, recall, _ = precision_recall_curve(y_test_bin.ravel(), y_score.ravel())
+    avg_precision = average_precision_score(y_test_bin, y_score, average="micro")
+
+    plt.figure()
+    plt.plot(recall, precision, color='green', lw=2,
+             label=f'Precision-Recall micro (AP = {avg_precision:.2f})')
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.title('Curva Precision-Recall Micro')
+    plt.legend()
+    if imgs_dir.exists():
+        plt.savefig("pr-caso8.png")
+    plt.show()
 
 def buscar_hiperparametros():
     for idx in range(len(dataframes)):
@@ -125,8 +127,8 @@ def entrenar_y_evaluar(idx, titulo, classifier, kernel, *, C, **kwargs):
     plot_decision_boundary(idx, titulo, X, y, modelo)
 
     # gráfico curvas roc y pr para el caso 8
-    # if idx == 7:  # caso 8: curvas ROC y PR
-    #     plot_roc_pr(modelo, X_test, y_test)
+    if idx == 7:  # caso 8: curvas ROC y PR
+        plot_roc_pr(modelo, X_test, y_test)
 
     return metricas, pruebas
 
