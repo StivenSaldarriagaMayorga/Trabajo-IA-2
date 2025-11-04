@@ -18,7 +18,7 @@ import pandas as pd
 from knn import metricas_knn, pruebas_knn, datos_curvas_caso8_knn
 from desicion_tree import metricas_dt, pruebas_dt, datos_curvas_caso8_dt
 from svm import metricas_svm, pruebas_svm, datos_curvas_caso8_svm
-from red_neuronal import metricas_nn
+from red_neuronal import metricas_nn, pruebas_nn, datos_curvas_caso8_nn
 import matplotlib.pyplot as plt
 import textwrap
 
@@ -133,13 +133,15 @@ plt.show()
 plot_roc_pr({
     "SVM": datos_curvas_caso8_svm,
     "Árboles de decisión": datos_curvas_caso8_dt,
-    "KNN": datos_curvas_caso8_knn
+    "KNN": datos_curvas_caso8_knn,
+    "Red neuronal": datos_curvas_caso8_nn
 })
 
 pruebas = {
     "svm": pruebas_svm,
     "trees": pruebas_dt,
-    "knn": pruebas_knn
+    "knn": pruebas_knn,
+    "nn": pruebas_nn
 }
 
 for k, v in pruebas.items():

@@ -1,4 +1,4 @@
-from dataset import calcular_metricas, dataframes
+from dataset import calcular_datos_curvas_caso8, calcular_metricas, dataframes, probar_modelo, preprocesadores
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import Input, regularizers
 from tensorflow.keras.layers import Dense, Dropout, BatchNormalization, GaussianNoise
@@ -7,7 +7,8 @@ from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import precision_score, recall_score, f1_score
 import numpy as np
 
-def Red_Neuronal(dataframe):
+datos_curvas_caso8_nn = {}
+def Red_Neuronal(idx_dataframe, dataframe):
     #Tomar los datos del dataframe
     X_train, X_test, y_train, y_test = dataframe
 
@@ -81,9 +82,17 @@ def Red_Neuronal(dataframe):
     metricas = calcular_metricas(y_true_classes, y_pred_classes)
     print(metricas)
     print("-"*50)
-    return metricas
+
+    pruebas = probar_modelo(model, preprocesadores[idx_dataframe])
+
+    if i == 7:
+        calcular_datos_curvas_caso8(datos_curvas_caso8_nn, model, X_test, y_test)
+
+    return metricas, pruebas
 
 metricas_nn = []
-for dataframe in dataframes:
-    metricas = Red_Neuronal(dataframe)
+pruebas_nn = []
+for i, dataframe in enumerate(dataframes):
+    metricas, pruebas = Red_Neuronal(i, dataframe)
     metricas_nn.append(metricas)
+    pruebas_nn.append(pruebas)
