@@ -79,6 +79,7 @@ def graficar_clusters(X, clusters, caso):
 def calcular_silhouette(X, clusters):
     # Esta función calcula la métrica de Silhouette Score para evaluar la calidad del clustering.
     # Un valor cercano a 1 indica buena separación de los clusters, mientras que valores negativos indican solapamiento.
+
     if len(np.unique(clusters)) > 1:
         sil = silhouette_score(X, clusters)
         print(f"Silhouette Score: {sil:.4f}")
@@ -88,7 +89,7 @@ def calcular_silhouette(X, clusters):
         return 0
 
 
-def Decision_DBSCAN(i, dfcase, *, min_samples=17):
+def Decision_DBSCAN(i, dfcase, *, min_samples=27):
     # Esta función principal coordina el flujo completo del modelo DBSCAN:
     # - Calcula eps automáticamente con el método del codo
     # - Entrena el modelo con los parámetros determinados
@@ -107,4 +108,4 @@ def Decision_DBSCAN(i, dfcase, *, min_samples=17):
     return metricas
 
 for i, dfcase in enumerate(dataframes_no_supervisado):
-    Decision_DBSCAN(i, dfcase, min_samples=17)
+    Decision_DBSCAN(i, dfcase, min_samples=27)
