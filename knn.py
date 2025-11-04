@@ -1,10 +1,40 @@
-from dataset import calcular_datos_curvas_caso8, calcular_metricas, dataframes, probar_modelo, preprocesadores
+from dataset import (
+    calcular_datos_curvas_caso8,
+    calcular_metricas,
+    dataframes,
+    probar_modelo,
+    preprocesadores,
+)
 
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import LabelEncoder, RobustScaler
 from sklearn.neighbors import KNeighborsClassifier
+
+from sklearn.model_selection import cross_val_score
+
+
+def validar_k(idx, ks=(3, 5, 7, 9, 11), cv=5):
+    X_train, X_test, y_train, y_test = dataframes[idx]
+
+    X = np.vstack((X_train, X_test))
+    y = np.concatenate((y_train, y_test))
+
+    resultados = []
+    for k in ks:
+        modelo = KNeighborsClassifier(n_neighbors=k, p=2, weights="uniform")
+        scores = cross_val_score(modelo, X, y, cv=cv, scoring="f1_macro")
+        resultados.append((k, scores.mean()))
+    print(f"\nResultados de validación cruzada para DF{idx+1}:")
+    for k, mean_score in resultados:
+        print(f"k={k}: F1 promedio = {mean_score:.3f}")
+    return resultados
+
+
+# Validación cruzada para verificar la elección de k
+for i in range(len(dataframes)):
+    validar_k(i)
 
 
 def plot_knn_regions_pca2d(
@@ -105,7 +135,7 @@ for i, (X_train, X_test, y_train, y_test) in enumerate(dataframes, start=1):
     print(metricas)
     metricas_knn.append(metricas)
 
-    pruebas = probar_modelo(knn, preprocesadores[i-1])
+    pruebas = probar_modelo(knn, preprocesadores[i - 1])
     pruebas_knn.append(pruebas)
 
     plot_knn_regions_pca2d(i, X_train, X_test, y_train, y_test, k=5)
