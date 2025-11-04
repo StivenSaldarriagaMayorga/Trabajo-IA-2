@@ -5,62 +5,57 @@ from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
 from scipy.spatial.distance import cdist
 import pandas as pd
-#import seaborn as sns
+import numpy as np
 
-def Kmeans(dataframe, metricas_kmeans):
+metricas_kmeans=[]
+def Kmeans(dataframe):
 
     #Tomar los datos del dataframe
     X_train, X_test, _, _ = dataframe
 
     #método del codo para hallar el k
-    '''inertia = []
-    K_range = range(1, 11)
+    inertia = []
+    silhouette_scores = []
+    K_range = range(2, 11)
 
     for k in K_range:
         kmeans = KMeans(n_clusters=k, random_state=SEED, n_init=10)
-        kmeans.fit(X_train)
-        inertia.append(kmeans.inertia_)'''   # Métrica Inercia.
+        labels = kmeans.fit_predict(X_train)
+        inertia.append(kmeans.inertia_) # Métrica Inercia.
+        silhouette_scores.append(silhouette_score(X_train, labels))  
+    
+    #Elegimos el k óptimo usando el silhouette score para que sea elegido 
+    # #automáticamente por el algoritmo, ya que usando el método del codo sería ambiguo
+    optimal_k = K_range[np.argmax(silhouette_scores)] 
+    print(f"Mejor K según Silhouette: {optimal_k}")
 
-    '''plt.figure(figsize=(8, 5))
+    #Graficar los resultados
+    plt.figure(figsize=(8, 5))
     plt.plot(K_range, inertia, marker='o')
     plt.title('Método del Codo')
     plt.xlabel('Número de clusters (K)')
     plt.ylabel('Inercia')
     plt.xticks(K_range)
     plt.grid(True)
-    plt.show()'''
+    plt.show()
 
-    #Silhouette score para evaluar la calidad de agrupamiento
-    '''silhouette_scores = []
-
-    for k in range(2, 11):
-        kmeans = KMeans(n_clusters=k, random_state=SEED, n_init=10)
-        labels = kmeans.fit_predict(X_train)
-        score = silhouette_score(X_train, labels)
-        silhouette_scores.append(score)'''
-
-    '''plt.figure(figsize=(8, 5))
+    plt.figure(figsize=(8, 5))
     plt.plot(range(2, 11), silhouette_scores, marker='o', color='green')
     plt.title('Silhouette Score por número de clusters')
     plt.xlabel('Número de clusters (K)')
     plt.ylabel('Silhouette Score')
     plt.grid(True)
-    plt.show()'''
+    plt.show()
 
-    #Calcular K-means con el óptimo
+    #Entrenar el modelo con el mejor k
+    #Si bien silhouette define k=2 con el mejor, según el método del codo k=3 
+    #suele ser un punto razonable para separar los clústers, y ese usaremos para el método
     optimal_k = 3
-    kmeans = KMeans(n_clusters=optimal_k, random_state=SEED, n_init=10)
+    kmeans = KMeans(n_clusters=optimal_k, random_state=SEED, n_init='auto')
     clusters = kmeans.fit_predict(X_train)
 
-    # Calculamos la distancia de cada punto a cada centroide
-    '''distancias = cdist(X_train, kmeans.cluster_centers_, metric='euclidean')'''
-
-    # Distancia del primer punto a todos los centroides
-    '''print("Distancia del primer vino a cada centroide:")
-    print(distancias[0])'''
-
     #Visualizamos usando PCA
-    pca = PCA(n_components=2)
+    pca = PCA(n_components=3)
     X_pca = pca.fit_transform(X_train)
 
     plt.figure(figsize=(8, 6))
@@ -87,8 +82,7 @@ def Kmeans(dataframe, metricas_kmeans):
     })
 
 for dataframe in dataframes:
-    metricas_kmeans = []
-    Kmeans(dataframe, metricas_kmeans)
+    Kmeans(dataframe)
 
 print(metricas_kmeans)
 
